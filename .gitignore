@@ -1,0 +1,13 @@
+*.build_log
+*.htm
+*.crf
+*.d
+*.dep
+*.iex
+*.June
+*.lnp
+*.lst
+*.o
+*.scvd
+*.uvoptx
+*.map
