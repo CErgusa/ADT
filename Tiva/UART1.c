@@ -22,6 +22,32 @@ int baud_9600_FBRD = 11;
 int baud_230400_IBRD = 4;
 int baud_230400_FRBD = 22;
 
+// PB0: UART1 Rx
+// PB1: UART1 Tx
+// PB3 -> DEV_EN(lidar)
+void PortB_Init(void)
+{
+  SYSCTL_RCGCGPIO_R |= SYSCTL_RCGCGPIO_R1;  // activate port B
+  while((SYSCTL_PRGPIO_R&SYSCTL_PRGPIO_R1) == 0){};  //wait status of initialized clock
+
+  // Alt function
+  // Enable alt funct on PB1-0
+  GPIO_PORTB_AFSEL_R |= 0x03;
+
+  // enable digital I/O on PB1-0
+  GPIO_PORTB_DEN_R |= 0x03; 
+  
+  // configure PB1-0 as UART
+  GPIO_PORTB_PCTL_R |= GPIO_PCTL_PB0_U1RX;
+  GPIO_PORTB_PCTL_R |= GPIO_PCTL_PB1_U1TX;
+
+  // disable analog functionality on PB1-0
+  GPIO_PORTB_AMSEL_R &= ~0x03;
+  
+  // disable pulldown resistor on PB1-0
+	GPIO_PORTB_PDR_R &= ~0x03;
+}
+
 
 void UART_Init(void){
   SYSCTL_RCGCUART_R |= 0x01;            // activate UART0
@@ -52,11 +78,12 @@ void UART_OutChar(char data){
   UART0_DR_R = data;
 }
 
+
 void UART1_Init(void)
 {
   SYSCTL_RCGCUART_R |= SYSCTL_RCGCUART_R1;  // activate UART1
-  SYSCTL_RCGCGPIO_R |= SYSCTL_RCGCGPIO_R1;  // activate port B
-  while((SYSCTL_PRGPIO_R&SYSCTL_PRGPIO_R1) == 0){};  //wait status of initialized clock
+  
+  PortB_Init();
 
   UART1_CTL_R &= ~UART_CTL_UARTEN; // disable UART
 
@@ -68,14 +95,8 @@ void UART1_Init(void)
   UART1_CTL_R |= UART_CTL_RXE;     // Enable UART RXE
   UART1_CTL_R |= UART_CTL_TXE;     // Enable UART TXE
   UART1_CTL_R |= UART_CTL_UARTEN;  // Enable UART
+  
 
-  GPIO_PORTB_AFSEL_R |= 0x03;           // enable alt funct on PB1-0
-  GPIO_PORTB_DEN_R |= 0x03;             // enable digital I/O on PB1-0
-  GPIO_PORTB_PCTL_R |= GPIO_PCTL_PB0_U1RX; // configure PB1-0 as UART
-  GPIO_PORTB_PCTL_R |= GPIO_PCTL_PB1_U1TX;
-
-  GPIO_PORTB_AMSEL_R &= ~0x03; // disable analog functionality on PB
-	GPIO_PORTB_PDR_R &= ~0x03;   // disable pulldown resistor on PB
 }
 
 char UART1_InChar(void){

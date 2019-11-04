@@ -1,38 +1,113 @@
 #include "Lidar.h"
 #include <stdbool.h>
 #include <stdint.h>
-//#include "inc/hw_ints.h"
-#include "inc/tm4c123gh6pm.h"
-/*
-#include "inc/hw_memmap.h"
-#include "driverlib/gpio.h"
-#include "driverlib/interrupt.h"
-#include "driverlib/pin_map.h"
-#include "driverlib/sysctl.h"
-#include "driverlib/timer.h"
-#include "driverlib/uart.h"*/
+
+
+
+// PB0: UART1 Rx <- Lidar Tx
+// PB1: UART1 Tx -> Lidar Rx
+// PF2 -> M_SCTP(lidar): M1PWM6
+// PF3 -> DEV_EN(lidar)
+// PF4 -> M_EN(lidar)
 
 #define timer_flag_health  0x00
 #define timer_flag_info    0x10
 volatile uint32_t flags = 0;
 
+// PF2 -> M_SCTP(lidar): M1PWM6
+// PF3 -> DEV_EN(lidar)
+// PF4 -> M_EN(lidar)
+void PortF_Init(void)
+{
+  // Activate clock for Port F
+	SYSCTL_RCGCGPIO_R |= SYSCTL_RCGC2_GPIOF;
+  
+  // Wait until Port F is ready
+  while((SYSCTL_PRGPIO_R&SYSCTL_PRGPIO_R5) == 0){};
+
+  // Set input/output
+  // set PF4-2 as output
+  // set [4:3]
+	GPIO_PORTF_DIR_R |= 0x18;
+	
+  // Alt function
+  // Enable alt function: set [2]
+  GPIO_PORTF_AFSEL_R |= 0x04;
+  // Disable alt function: clear [4:3]
+  GPIO_PORTF_AFSEL_R &= ~(0x18);
+  
+  // Configure the PMCn fields in the GPIOPCT
+  GPIO_PORTF_PCTL_R |= GPIO_PCTL_PF2_M1PWM6;
+  
+  // Disable anlog function
+  // clear [4:2]
+  GPIO_PORTF_AMSEL_R &= ~0x1C;
+    
+  // Drive Strength: 8mA
+  // set [4:3]
+  GPIO_PORTF_DR8R_R |= 0x18;
+  
+  // Disable Open Drain
+  // clear [4:3]
+  GPIO_PORTF_ODR_R &= ~(0x18);  
+    
+  // Disable pull-up
+  // clear [4:3]
+  GPIO_PORTF_PUR_R &= ~(0x18);
+    
+  // Enable pull-down
+  // set [4:3]
+  GPIO_PORTF_PDR_R |= 0x18;
+  
+  // Enable digital function
+  // set [4:2]
+	GPIO_PORTF_DEN_R |= 0x1C;
+}
+
+
+void Lidar_Init(void)
+{
+  SYSCTL_RCGC0_R |= SYSCTL_RCGC0_PWM0;
+  PWM1_CTL_R = 0x00000000;//Disable PWM
+  PWM1_0_GENA_R |= 0x000000C8;//Drive PWMa High,Action for Comparator is drive high
+  PWM1_0_LOAD_R |= 0x00186A00;//Load 1600000 for 6 Hz frequency so that we can check blinking of LED.
+  PWM1_0_CMPA_R |= 0x00000063;//25% Duty Cycle
+  PWM1_0_CTL_R |= 0x00000001;//Start Timer for PWM Generator
+  PWM1_ENABLE_R |= 0x00000001;//Start PWM  
+}
+
+
 void scan_lidar()
 {
 		// scan command [A5 60]
-	UART1_OutChar('¥');
-	UART1_OutChar('`');
+	UART1_OutChar(0xA5);
+	UART1_OutChar(0x60);
 }
 void restart_lidar()
 {
 		// restart command [A5 40]
-	UART1_OutChar('¥');
-	UART1_OutChar('@');
+	UART1_OutChar(0xA5);
+	UART1_OutChar(0x40);
 }
 void stop_lidar()
 {
 	// stop command [A5 65]
-	UART1_OutChar('¥');
-	UART1_OutChar('e');
+	UART1_OutChar(0xA5);
+	UART1_OutChar(0x65);
+}
+
+// PC4 -> M_SCTP(lidar)
+// PC5 -> M_EN(lidar)
+void set_lidar_speed(void)
+{
+  // If negative speed, it means default
+  //if (speed_percent < 0)
+  //{
+    // clear enable bit(PC5)
+  //  GPIO_PORTC_DATA_R &= ~(0x20);
+  //}
+  // To control motor, set M_EN(PC5) high
+  // Generate 10kHz sqaure wave..
 }
 
 void TIMER0A_Handler(int property)
@@ -71,65 +146,12 @@ void timer(int ttime, int flag)
 		}
 	}
 }
-/*
-volatile uint32_t g_ui32Counter = 0;
-void timer1(void)
-{
-	uint32_t ui32PrevCount = 0;
-  SysCtlClockSet(SYSCTL_SYSDIV_1 | SYSCTL_USE_OSC | SYSCTL_OSC_MAIN | SYSCTL_XTAL_16MHZ);
 
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
-
-
-	// Configure Timer0B as a 16-bit periodic timer.
-	TimerConfigure(TIMER0_BASE, TIMER_CFG_SPLIT_PAIR | TIMER_CFG_B_PERIODIC);
-
-
-	// Set the Timer0B load value to 1ms.
-	TimerLoadSet(TIMER0_BASE, TIMER_B, SysCtlClockGet() / 1000);
-
-
-	// Enable the Timer0B interrupt on the processor (NVIC).
-	IntEnable(INT_TIMER0B);
-
-
-	// Enable Timer0B.
-	TimerEnable(TIMER0_BASE, TIMER_B);
-
-
-	// Enable processor interrupts.
-	IntMasterEnable();
-
-
-	// Configure the Timer0B interrupt for timer timeout.
-	TimerIntEnable(TIMER0_BASE, TIMER_TIMB_TIMEOUT);
-
-	// Initialize the interrupt counter.
-	g_ui32Counter = 0;
-	
-	// Loop forever while the Timer0B runs.
-	while(1)
-	{
-			// If the interrupt count changed, print the new value
-		 if(ui32PrevCount != g_ui32Counter)
-		{
-				ui32PrevCount = g_ui32Counter;
-		}
-	}
-}
-
-void Timer0BIntHandler(void)
-{
-	// Clear the timer interrupt flag.
-	 TimerIntClear(TIMER0_BASE, TIMER_TIMB_TIMEOUT);
-	// Update the periodic interrupt counter.
-	 g_ui32Counter++;
-}*/
 
 void health()
 {
 	// health command [A5 91]
-	UART1_OutChar('¥');
+	UART1_OutChar(0xA5);
 	UART1_OutChar(0x91);
 	
 	int in = 0;
@@ -150,7 +172,7 @@ void health()
 void device_status()
 {
 		// device info [A5 90]
-	UART1_OutChar('¥');
+	UART1_OutChar(0xA5);
 	UART1_OutChar(0x90);
 	
 	int in = 0;
@@ -164,4 +186,3 @@ void device_status()
 	
 	flags = 0;
 }
-

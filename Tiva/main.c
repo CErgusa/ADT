@@ -10,8 +10,9 @@
 #include "Lidar.h"
 #include "tm4c123gh6pm.h"
 #include "timer.h"
-#include <stdio.h>
+#include "GDL.h"
 
+#include <stdio.h>
 
 int main(void)
 {
@@ -19,13 +20,22 @@ int main(void)
 	SysTick_Init();
 	SSI_Init();
 	ADC0_Init();
+  ADC1_Init();
 	UART1_Init();
-	
+	GDL_Init();
+  Lidar_Init();
+  
 	UART_OutChar('>');
-	
+  //scan_lidar();
+ 
 	while(1)
 	{
-		SSI_in();
+  
+    // lidar read
+    // send
+  
+		//SSI_in();
+      
+    
 	}
 }
-

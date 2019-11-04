@@ -4,6 +4,6 @@
 	
 void SSI_Init(void);
 void SSI_Out(uint8_t code);
-void send_byte(char data);
+//void send_byte(char data);
 void send_str(char *buffer);
 void SSI_in(void);

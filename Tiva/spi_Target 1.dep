@@ -1,0 +1,56 @@
+Dependencies for Project 'spi', Target 'Target 1': (DO NOT MODIFY !)
+F (.\SSI.c)(0x5DB32D53)(--c99 --gnu -c --cpu Cortex-M4.fp -D__EVAL -g -O0 --apcs=interwork --split_sections-I.\RTE\_Target_1-ID:\Apps\Keil_v5\ARM\PACK\Keil\TM4C_DFP\1.1.0\Device\Include\TM4C123-ID:\Apps\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="526" -DTM4C123GH6PM-o .\ssi.o --omf_browse .\ssi.crf --depend .\ssi.d)
+I (SSI.h)(0x5DB23400)
+I (D:\Apps\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599FAE2E)
+I (tm4c123gh6pm.h)(0x5DB0BBB0)
+I (adc.h)(0x5DB24F4B)
+I (D:\Apps\Keil_v5\ARM\ARMCC\include\stdlib.h)(0x599FAE2C)
+I (D:\Apps\Keil_v5\ARM\ARMCC\include\stdio.h)(0x599FAE2C)
+F (.\UART1.c)(0x5DB7667A)(--c99 --gnu -c --cpu Cortex-M4.fp -D__EVAL -g -O0 --apcs=interwork --split_sections-I.\RTE\_Target_1-ID:\Apps\Keil_v5\ARM\PACK\Keil\TM4C_DFP\1.1.0\Device\Include\TM4C123-ID:\Apps\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="526" -DTM4C123GH6PM-o .\uart1.o --omf_browse .\uart1.crf --depend .\uart1.d)
+I (D:\Apps\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599FAE2E)
+I (UART1.h)(0x5D9FBD6B)
+I (tm4c123gh6pm.h)(0x5DB0BBB0)
+F (.\UART1.h)(0x5D9FBD6B)()
+F (.\main.c)(0x5DB7687E)(--c99 --gnu -c --cpu Cortex-M4.fp -D__EVAL -g -O0 --apcs=interwork --split_sections-I.\RTE\_Target_1-ID:\Apps\Keil_v5\ARM\PACK\Keil\TM4C_DFP\1.1.0\Device\Include\TM4C123-ID:\Apps\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="526" -DTM4C123GH6PM-o .\main.o --omf_browse .\main.crf --depend .\main.d)
+I (D:\Apps\Keil_v5\ARM\ARMCC\include\stdlib.h)(0x599FAE2C)
+I (D:\Apps\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x599FAE2E)
+I (D:\Apps\Keil_v5\ARM\ARMCC\include\stdio.h)(0x599FAE2C)
+I (D:\Apps\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599FAE2E)
+I (D:\Apps\Keil_v5\ARM\ARMCC\include\math.h)(0x599FAE2E)
+I (SysTick (2).h)(0x5D9FBD6B)
+I (adc.h)(0x5DB24F4B)
+I (tm4c123gh6pm.h)(0x5DB0BBB0)
+I (SSI.h)(0x5DB23400)
+I (UART1.h)(0x5D9FBD6B)
+I (Lidar.h)(0x5DB76876)
+I (timer.h)(0x5D9FBD6C)
+I (GDL.h)(0x5DB77095)
+F (.\SysTick (2).h)(0x5D9FBD6B)()
+F (.\SysTick.c)(0x5D9FBD6B)(--c99 --gnu -c --cpu Cortex-M4.fp -D__EVAL -g -O0 --apcs=interwork --split_sections-I.\RTE\_Target_1-ID:\Apps\Keil_v5\ARM\PACK\Keil\TM4C_DFP\1.1.0\Device\Include\TM4C123-ID:\Apps\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="526" -DTM4C123GH6PM-o .\systick.o --omf_browse .\systick.crf --depend .\systick.d)
+I (D:\Apps\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599FAE2E)
+I (tm4c123gh6pm.h)(0x5DB0BBB0)
+I (UART1.h)(0x5D9FBD6B)
+I (SysTick (2).h)(0x5D9FBD6B)
+F (.\startup.s)(0x5D9FBD6C)(--cpu Cortex-M4.fp --pd "__EVAL SETA 1" -g --apcs=interwork -I.\RTE\_Target_1-ID:\Apps\Keil_v5\ARM\PACK\Keil\TM4C_DFP\1.1.0\Device\Include\TM4C123-ID:\Apps\Keil_v5\ARM\CMSIS\Include--pd "__UVISION_VERSION SETA 526" --pd "TM4C123GH6PM SETA 1"--list .\startup.lst --xref -o .\startup.o --depend .\startup.d)
+F (.\Lidar.c)(0x5DB772FE)(--c99 --gnu -c --cpu Cortex-M4.fp -D__EVAL -g -O0 --apcs=interwork --split_sections-I.\RTE\_Target_1-ID:\Apps\Keil_v5\ARM\PACK\Keil\TM4C_DFP\1.1.0\Device\Include\TM4C123-ID:\Apps\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="526" -DTM4C123GH6PM-o .\lidar.o --omf_browse .\lidar.crf --depend .\lidar.d)
+I (Lidar.h)(0x5DB76876)
+I (UART1.h)(0x5D9FBD6B)
+I (tm4c123gh6pm.h)(0x5DB0BBB0)
+I (D:\Apps\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599FAE2E)
+I (D:\Apps\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x599FAE2E)
+F (.\tm4c123gh6pm.h)(0x5DB0BBB0)()
+F (.\Lidar.h)(0x5DB76876)()
+F (.\adc.c)(0x5DB76034)(--c99 --gnu -c --cpu Cortex-M4.fp -D__EVAL -g -O0 --apcs=interwork --split_sections-I.\RTE\_Target_1-ID:\Apps\Keil_v5\ARM\PACK\Keil\TM4C_DFP\1.1.0\Device\Include\TM4C123-ID:\Apps\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="526" -DTM4C123GH6PM-o .\adc.o --omf_browse .\adc.crf --depend .\adc.d)
+I (adc.h)(0x5DB24F4B)
+I (D:\Apps\Keil_v5\ARM\ARMCC\include\stdlib.h)(0x599FAE2C)
+I (D:\Apps\Keil_v5\ARM\ARMCC\include\stdio.h)(0x599FAE2C)
+I (D:\Apps\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599FAE2E)
+I (tm4c123gh6pm.h)(0x5DB0BBB0)
+I (UART1.h)(0x5D9FBD6B)
+F (.\adc.h)(0x5DB24F4B)()
+F (.\SSI.h)(0x5DB23400)()
+F (.\GDL.c)(0x5DB769E0)(--c99 --gnu -c --cpu Cortex-M4.fp -D__EVAL -g -O0 --apcs=interwork --split_sections-I.\RTE\_Target_1-ID:\Apps\Keil_v5\ARM\PACK\Keil\TM4C_DFP\1.1.0\Device\Include\TM4C123-ID:\Apps\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="526" -DTM4C123GH6PM-o .\gdl.o --omf_browse .\gdl.crf --depend .\gdl.d)
+I (GDL.h)(0x5DB77095)
+I (tm4c123gh6pm.h)(0x5DB0BBB0)
+I (D:\Apps\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599FAE2E)
+F (.\GDL.h)(0x5DB77095)()
