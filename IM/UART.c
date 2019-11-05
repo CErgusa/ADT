@@ -83,8 +83,19 @@ void UART0_OutChar(char data){
 }
 
 
-// PB0: Rx
-// PB1: Tx
+void UART0_OutString(char *data)
+{
+  int i = 0;
+  while (data[i] != ';')
+  {
+    UART0_OutChar(data[i]);
+    ++i;
+  }
+}
+
+
+// PB0(UART1 Rx) <--> LCD Tx
+// PB1(UART1 Tx) <--> LCD Rx
 void UART1_Init(void)
 {
   SYSCTL_RCGCUART_R |= SYSCTL_RCGCUART_R1;  // activate UART1
@@ -120,4 +131,66 @@ char UART1_InChar(void){
 void UART1_OutChar(char data){
   while((UART1_FR_R&UART_FR_TXFF) != 0);
   UART1_DR_R = data;
+}
+
+
+void UART1_OutString(char *data)
+{
+  int i = 0;
+  while (data[i] != ';')
+  {
+    UART1_OutChar(data[i]);
+    ++i;
+  }
+}
+
+
+// PE4(UART5 Rx) <--> Xbee DOUT
+// PE5(UART5 Tx) <--> Xbee DIN
+void UART5_Init(void)
+{
+  SYSCTL_RCGCUART_R |= SYSCTL_RCGCUART_R5;  // activate UART4
+  SYSCTL_RCGCGPIO_R |= SYSCTL_RCGCGPIO_R4;  // activate port E
+  while((SYSCTL_PRGPIO_R&SYSCTL_PRGPIO_R4) == 0){};  //wait status of initialized clock
+  
+  UART5_CTL_R &= ~UART_CTL_UARTEN; // disable UART
+    
+  // In 9600 baud, 8bits, no parity
+  UART5_IBRD_R = 104; // IBRD = int(16,000,000 / (16 * 9600)) = int(104.16666)   896p in datasheet
+  UART5_FBRD_R = 11;  // FBRD = int(0.68056 * 64 + 0.5) = int(11.66624)
+  UART5_LCRH_R = (UART_LCRH_WLEN_8|UART_LCRH_FEN);
+ 
+  UART5_CTL_R |= UART_CTL_RXE;     // Enable UART RXE
+  UART5_CTL_R |= UART_CTL_TXE;     // Enable UART TXE
+  UART5_CTL_R |= UART_CTL_UARTEN;  // Enable UART
+    
+  GPIO_PORTE_AFSEL_R |= 0x30;           // enable alt funct on PD7-6
+  GPIO_PORTE_DEN_R |= 0x30;             // enable digital I/O on PD7-6
+  GPIO_PORTE_PCTL_R |= GPIO_PCTL_PE4_U5RX; // configure PD7-6 as UART
+  GPIO_PORTE_PCTL_R |= GPIO_PCTL_PE5_U5TX;
+   
+  GPIO_PORTE_AMSEL_R &= ~0x30;          // disable analog functionality on PD7-6
+}
+
+
+char UART5_InChar(void){
+  while((UART5_FR_R&UART_FR_RXFE) != 0);
+  return((char)(UART5_DR_R&0xFF));
+}
+
+
+void UART5_OutChar(char data){
+  while((UART5_FR_R&UART_FR_TXFF) != 0);
+  UART5_DR_R = data;
+}
+
+
+void UART5_OutString(char *data)
+{
+  int i = 0;
+  while (data[i] != ';')
+  {
+    UART5_OutChar(data[i]);
+    ++i;
+  }
 }

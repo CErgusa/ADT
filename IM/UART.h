@@ -47,6 +47,8 @@ void UART0_Init(void);
 // Output: ASCII code for key typed
 char UART0_InChar(void);
 
+void UART0_OutString(char *data);
+
 //------------UART_OutChar------------
 // Output 8-bit to serial port
 // Input: letter is an 8-bit ASCII character to be transferred
@@ -58,3 +60,13 @@ void UART1_Init(void);
 char UART1_InChar(void);
 
 void UART1_OutChar(char data);
+
+void UART1_OutString(char *data);
+
+void UART5_Init(void);
+
+char UART5_InChar(void);
+
+void UART5_OutChar(char data);
+
+void UART5_OutString(char *data);
