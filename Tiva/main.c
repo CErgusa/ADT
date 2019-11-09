@@ -9,7 +9,7 @@
 #include "UART1.h"
 #include "Lidar.h"
 #include "tm4c123gh6pm.h"
-#include "timer.h"
+//#include "timer.h"
 #include "GDL.h"
 
 #include <stdio.h>
@@ -23,10 +23,25 @@ int main(void)
   ADC1_Init();
 	UART1_Init();
 	GDL_Init();
-  Lidar_Init();
+  //Lidar_Init();
+  //restart_lidar();
+  stop_lidar();
+  
+  SysTick_Wait1us(10);
+  
+  int response = scan_lidar();
+  
+  //int lidar[0x94];
+  
+  if (response == 0xA55A)
+  {
+    while(1) {}
+  }
+  
   
 	UART_OutChar('>');
-  //scan_lidar();
+  
+  
  
 	while(1)
 	{

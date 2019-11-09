@@ -3,17 +3,8 @@
 #include <stdint.h>
 
 
-
 // PB0: UART1 Rx <- Lidar Tx
 // PB1: UART1 Tx -> Lidar Rx
-// PF2 -> M_SCTP(lidar): M1PWM6
-// PF3 -> DEV_EN(lidar)
-// PF4 -> M_EN(lidar)
-
-#define timer_flag_health  0x00
-#define timer_flag_info    0x10
-volatile uint32_t flags = 0;
-
 // PF2 -> M_SCTP(lidar): M1PWM6
 // PF3 -> DEV_EN(lidar)
 // PF4 -> M_EN(lidar)
@@ -77,12 +68,66 @@ void Lidar_Init(void)
 }
 
 
-void scan_lidar()
+int scan_lidar()
 {
 		// scan command [A5 60]
 	UART1_OutChar(0xA5);
 	UART1_OutChar(0x60);
+
+	int watchdog = 0;
+	int response = check_scan_response();
+	if(response == RECEIVED)
+	{
+	    // start receiving!
+	}
+	else
+	{
+	    if(watchdog <= 3)
+	    {
+            stop_lidar();
+            SysTick_Wait1us(10);
+            scan_lidar();
+            ++watchdog;
+	    }
+	    else
+	        return FAILED;
+	}
+
 }
+
+int check_scan_response()
+{
+    int response = UART1_InChar();
+    if(response == SCAN_RESPONSE_HEADER)
+    {
+        int find_packet = 0;
+        int scan_response[SCAN_HEADER_SIZE];
+
+        int counter = 0;
+
+        // debug: make sure the packet is as follows
+        // A5 5A 05 00 00 40 81
+        while(find_packet != PACKET_FIRST_BYTE)
+        {
+            scan_response[i] = UART1_InChar();
+            find_packet = scan_response[counter++];
+        }
+
+        if(scan_response[0] == 0xA5 && scan_response[1] == 0x5A && scan_response[2] == 0x05 &&
+                scan_response[3] == 0x00 && scan_response[4] == 0x00 && scan_response[5] == 0x40 &&
+                scan_response[6] == 0x81)
+        {
+            return RECEIVED;
+        }
+        else
+        {
+            return NOT_RECEIVED;
+        }
+    }
+
+    return NOT_RECEIVED;
+}
+
 void restart_lidar()
 {
 		// restart command [A5 40]
@@ -109,44 +154,6 @@ void set_lidar_speed(void)
   // To control motor, set M_EN(PC5) high
   // Generate 10kHz sqaure wave..
 }
-
-void TIMER0A_Handler(int property)
-{
-	TIMER0_ICR_R |= (1<<0);
-	//disable all interruptions
-	
-	//set my flag
-	if(property == 0)
-		flags = 0x01;
-	if(property == 1)
-		flags = 0x11;
-	
-}
-
-// flag = 0: health flag
-//      = 1: info flag
-void timer(int ttime, int flag)
-{
-	SYSCTL_RCGCTIMER_R |= 1;            /* enable clock (all modules) in Run mode */
-  TIMER0_CTL_R = 0;                   /* disable Timer before init. */
-  TIMER0_CFG_R = 0x04;                /* 16-bit option, hassard said we don't need 32 */
-  TIMER0_TAMR_R = 0b100001;           /* one-shot mode, default count down; enabling TAMIE interruption */
-  TIMER0_TAILR_R = 16000 * ttime - 1; /* Timer A interval load value register */
-  TIMER0_ICR_R = 0x1;                 /* clear the TimerA timeout flag */
-  TIMER0_CTL_R |= 0x01;               /* enable Timer A after initialization */
-	TIMER0_IMR_R |= (1<<0);             /* set time-out interrupt in the GPTM Interrupt Mask Register (GPTMIMR) */
-	
-  while(1)
-	{
-		if((TIMER0_RIS_R & 0x1) == 1)     /* wait for TimerA timeout flag to set */
-		{
-			UART_OutChar('0');
-			//TIMER0A_Handler(flag);
-			break;
-		}
-	}
-}
-
 
 void health()
 {

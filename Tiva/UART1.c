@@ -22,8 +22,8 @@ int baud_9600_FBRD = 11;
 int baud_230400_IBRD = 4;
 int baud_230400_FRBD = 22;
 
-// PB0: UART1 Rx
-// PB1: UART1 Tx
+// PB0: UART1 Rx <--> Lidar Tx
+// PB1: UART1 Tx <--> Lidar Rx
 // PB3 -> DEV_EN(lidar)
 void PortB_Init(void)
 {
