@@ -58,3 +58,7 @@ void UART1_Init(void);
 char UART1_InChar(void);
 
 void UART1_OutChar(char data);
+
+void UART1_Handler(void);
+
+void UART1_enableInterrupts(void);

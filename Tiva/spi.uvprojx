@@ -457,6 +457,21 @@
               <FileType>5</FileType>
               <FilePath>.\GDL.h</FilePath>
             </File>
+            <File>
+              <FileName>v8stdint.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\v8stdint.h</FilePath>
+            </File>
+            <File>
+              <FileName>preprocessor.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\preprocessor.c</FilePath>
+            </File>
+            <File>
+              <FileName>preprocessor.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\preprocessor.h</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

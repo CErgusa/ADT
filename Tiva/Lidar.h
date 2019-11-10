@@ -62,5 +62,5 @@ struct point_data{
     uint8_t quality;
     float   angle;
     float   distance;
-    bool    startBit;
+    int    startBit;
 };

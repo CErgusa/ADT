@@ -16,36 +16,32 @@
 
 int main(void)
 {
+	SSI_Init();
 	UART_Init();
 	SysTick_Init();
-	SSI_Init();
 	ADC0_Init();
   ADC1_Init();
 	UART1_Init();
 	GDL_Init();
   //Lidar_Init();
-  //restart_lidar();
-  stop_lidar();
+  restart_lidar();
+  //stop_lidar();
   
-  SysTick_Wait1us(10);
+  //SysTick_Wait1us(10);
   
   int response = scan_lidar();
   
   //int lidar[0x94];
   
-  if (response == 0xA55A)
-  {
-    while(1) {}
-  }
-  
+  //if (response == 0xA55A)
+  //{
+  //  while(1) {}
+  //}
   
 	UART_OutChar('>');
   
-  
- 
 	while(1)
 	{
-  
     // lidar read
     // send
   

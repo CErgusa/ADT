@@ -55,8 +55,8 @@ void UART_Init(void){
   while((SYSCTL_PRGPIO_R&0x01) == 0){}; //wait status of initialized clock
   UART0_CTL_R &= ~UART_CTL_UARTEN;      // disable UART
 		
-  UART0_IBRD_R = baud_230400_IBRD;
-  UART0_FBRD_R = baud_230400_FRBD;
+  UART0_IBRD_R = baud_9600_IBRD;
+  UART0_FBRD_R = baud_9600_FBRD;
   
 	// 8 bit word length (no parity bits, one stop bit, FIFOs)
   UART0_LCRH_R = (UART_LCRH_WLEN_8|UART_LCRH_FEN);
@@ -78,7 +78,8 @@ void UART_OutChar(char data){
   UART0_DR_R = data;
 }
 
-
+// PB0: UART1 Rx <--> Lidar Tx
+// PB1: UART1 Tx <--> Lidar Rx
 void UART1_Init(void)
 {
   SYSCTL_RCGCUART_R |= SYSCTL_RCGCUART_R1;  // activate UART1
@@ -94,9 +95,14 @@ void UART1_Init(void)
 
   UART1_CTL_R |= UART_CTL_RXE;     // Enable UART RXE
   UART1_CTL_R |= UART_CTL_TXE;     // Enable UART TXE
+    
+  // UART1 Interrupt configuration
+  // UART1_IM_R |= UART_IM_RXIM;
+  // Set (7/8)bits will trigger
+  UART1_IFLS_R = ((~(0x3F)) | UART_IFLS_RX7_8);
   UART1_CTL_R |= UART_CTL_UARTEN;  // Enable UART
-  
-
+  NVIC_PRI1_R |= ~(0xE00000);
+  NVIC_EN0_R |= 0x40; // IRQn = 6
 }
 
 char UART1_InChar(void){
@@ -107,4 +113,18 @@ char UART1_InChar(void){
 void UART1_OutChar(char data){
   while((UART1_FR_R&UART_FR_TXFF) != 0);
   UART1_DR_R = data;
+}
+
+void UART1_Handler(void)
+{
+  while(1) UART_OutChar('f');
+  UART1_ICR_R |= UART_ICR_RXIC; // Acknowledge  
+  while((UART1_FR_R&UART_FR_RXFE) != 0);
+  char preprocess = ((char)(UART1_DR_R&0xFF));
+  // throw into a buffer for another function to read
+}
+
+void UART1_enableInterrupts(void)
+{
+  UART1_IM_R |= UART_IM_RXIM;
 }

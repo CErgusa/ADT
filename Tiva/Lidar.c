@@ -1,6 +1,9 @@
 #include "Lidar.h"
 #include <stdbool.h>
 #include <stdint.h>
+#include "SysTick (2).h"
+
+int check_scan_response(void);
 
 
 // PB0: UART1 Rx <- Lidar Tx
@@ -74,6 +77,7 @@ int scan_lidar()
 	UART1_OutChar(0xA5);
 	UART1_OutChar(0x60);
 
+/*
 	int watchdog = 0;
 	int response = check_scan_response();
 	if(response == RECEIVED)
@@ -92,7 +96,7 @@ int scan_lidar()
 	    else
 	        return FAILED;
 	}
-
+*/
 }
 
 int check_scan_response()
@@ -109,7 +113,7 @@ int check_scan_response()
         // A5 5A 05 00 00 40 81
         while(find_packet != PACKET_FIRST_BYTE)
         {
-            scan_response[i] = UART1_InChar();
+            scan_response[counter] = UART1_InChar();
             find_packet = scan_response[counter++];
         }
 
@@ -160,20 +164,7 @@ void health()
 	// health command [A5 91]
 	UART1_OutChar(0xA5);
 	UART1_OutChar(0x91);
-	
-	int in = 0;
-	UART_OutChar('A');
-	timer(100, 0);
-	UART_OutChar('B');
-	while(flags == 0x00)
-	{
-		UART_OutChar('C');
-		in = UART1_InChar(); // take in input
-		// convert from # to ascii
-		UART_OutChar(in); // output to terterm
-	}
-	
-	flags = 0;
+
 }
 
 void device_status()
@@ -181,15 +172,4 @@ void device_status()
 		// device info [A5 90]
 	UART1_OutChar(0xA5);
 	UART1_OutChar(0x90);
-	
-	int in = 0;
-	timer(10,1);
-	while(flags == 0x00)
-	{
-		in = UART1_InChar(); // take in input
-		// convert from # to ascii
-		UART_OutChar(in); // output to terterm
-	}
-	
-	flags = 0;
 }

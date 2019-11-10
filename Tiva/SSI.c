@@ -55,7 +55,6 @@ void SSI_in(void){
   int SSI_CE_PA3 = (GPIO_PORTA_DATA_R & 0x08);
   uint32_t IR_Raw[3];
   unsigned char IR_MSB[3];
-  int i = 0;
   IR_Raw[0] = 0xABF;//ADC_Get(1, IR1_CHANNEL);
   IR_Raw[1] = 0xCDF;//ADC_Get(1, IR2_CHANNEL);
   IR_Raw[2] = 0xEFF;//ADC_Get(1, IR3_CHANNEL);
