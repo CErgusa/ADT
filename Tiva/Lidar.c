@@ -76,27 +76,16 @@ int scan_lidar()
 		// scan command [A5 60]
 	UART1_OutChar(0xA5);
 	UART1_OutChar(0x60);
-
-/*
-	int watchdog = 0;
+	
 	int response = check_scan_response();
 	if(response == RECEIVED)
 	{
-	    // start receiving!
+	  return RECEIVED;
 	}
 	else
 	{
-	    if(watchdog <= 3)
-	    {
-            stop_lidar();
-            SysTick_Wait1us(10);
-            scan_lidar();
-            ++watchdog;
-	    }
-	    else
-	        return FAILED;
+		return FAILED;
 	}
-*/
 }
 
 int check_scan_response()

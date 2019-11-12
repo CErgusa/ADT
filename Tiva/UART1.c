@@ -117,7 +117,7 @@ void UART1_OutChar(char data){
 
 void UART1_Handler(void)
 {
-  while(1) UART_OutChar('f');
+  // while(1) UART_OutChar('f');
   UART1_ICR_R |= UART_ICR_RXIC; // Acknowledge  
   while((UART1_FR_R&UART_FR_RXFE) != 0);
   char preprocess = ((char)(UART1_DR_R&0xFF));
