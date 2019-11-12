@@ -106,9 +106,10 @@ int check_scan_response()
             find_packet = scan_response[counter++];
         }
 
-        if(scan_response[0] == 0xA5 && scan_response[1] == 0x5A && scan_response[2] == 0x05 &&
-                scan_response[3] == 0x00 && scan_response[4] == 0x00 && scan_response[5] == 0x40 &&
-                scan_response[6] == 0x81)
+        if(scan_response[0] == SCAN_BYTE0 && scan_response[1] == SCAN_BYTE1 &&
+					 scan_response[2] == SCAN_BYTE2 && scan_response[3] == SCAN_BYTE3 &&
+   	       scan_response[4] == SCAN_BYTE4 && scan_response[5] == SCAN_BYTE5 &&
+           scan_response[6] == SCAN_BYTE6)
         {
             return RECEIVED;
         }

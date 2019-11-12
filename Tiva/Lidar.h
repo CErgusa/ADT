@@ -20,15 +20,23 @@ void device_status(void);
 #define NOT_RECEIVED 0
 #define FAILED 0
 
-#define SCAN_RESPONSE_HEADER 0x5A
-#define SCAN_HEADER_SIZE 0X07
-#define PACKET_FIRST_BYTE 0XA5
-#define MAX_PACKET_SIZE 0X80
-#define ZERO_PACKET 0X00
-#define CLOUD_PACKET 0X01
-#define PAKET_HEADER 0X55
+#define SCAN_RESPONSE_HEADER 0xA5
+#define SCAN_HEADER_SIZE 0x07
+#define PACKET_FIRST_BYTE 0xA5
+#define MAX_PACKET_SIZE 0x80
+#define ZERO_PACKET 0x00
+#define CLOUD_PACKET 0x01
 #define SERIAL_NUM_SIZE 16
 
+#define SCAN_BYTE0 0xA5
+#define SCAN_BYTE1 0x5A
+#define SCAN_BYTE2 0x05
+#define SCAN_BYTE3 0x00
+#define SCAN_BYTE4 0x00
+#define SCAN_BYTE5 0x40
+#define SCAN_BYTE6 0x81
+
+#define END_OF_PACKET -1
 
 struct scan_node{
     uint16_t  packet_header;
@@ -38,7 +46,6 @@ struct scan_node{
     uint16_t  ending_angle;
     uint16_t  buffer[MAX_PACKET_SIZE];
 };
-
 
 struct device_info{
     uint8_t   model_number;
@@ -50,17 +57,4 @@ struct device_info{
 struct device_health{
     uint8_t   status;
     uint16_t  error_code;
-};
-
-struct scan_data{
-    uint8_t rotation;
-    uint32_t frequency;
-    uint8_t sample_rate;
-};
-
-struct point_data{
-    uint8_t quality;
-    float   angle;
-    float   distance;
-    int    startBit;
 };
