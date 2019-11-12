@@ -20,7 +20,7 @@ void system_init(void)
 }
 
 
-// Jun change this as need be, this is our new main function
+// Jun change this as needed, this is our new main function
 // I just wanted to move things towards an engine rather than
 // always being in main!
 int system_engine(void)
@@ -34,7 +34,8 @@ int system_engine(void)
 	
 	if(response == RECEIVED)
 	{
-		return NO_ERROR;
+		while(1) { ; }
+		// return NO_ERROR;
 	}
 	
 	return ERROR;
