@@ -1,7 +1,7 @@
 #include "adc.h"
 #include "UART1.h"
 
-// We will use 6 pins of Port D
+// We will use 5 pins of Port D
 // Cell3 -> PD0(AIN7) -> ADC0
 // Cell2 -> PD1(AIN6) -> ADC0
 // Cell1 -> PD2(AIN5) -> ADC0
@@ -28,9 +28,15 @@ void PortD_Init(void)
   // Disable alt funcitno: clear [6]
   GPIO_PORTD_AFSEL_R |= 0x0F;
   GPIO_PORTD_AFSEL_R &= ~(0x40);
+  
+  //GPIOPCTL GPIOADCCTL
+  
     
   // For GPIO pins,
   // Drive Strength: 8mA
+  // Clear DR2R bit
+  GPIO_PORTD_DR2R_R &= ~0xFF;
+  
   // set [6]
   GPIO_PORTD_DR8R_R |= 0x40;
 
@@ -45,6 +51,8 @@ void PortD_Init(void)
   // Enable pull-down
   // set [6]
   GPIO_PORTD_PDR_R |= 0x40;
+  
+
     
   // Digital I/O
   // Enable digital I/O: set [6]

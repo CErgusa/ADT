@@ -25,6 +25,9 @@ void system_init(void)
 // always being in main!
 int system_engine(void)
 {
+  // Testing CELL
+  SSI_in();
+
 	stop_lidar();
 	SysTick_Wait1us(10);
 	int response = scan_lidar();

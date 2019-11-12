@@ -54,10 +54,20 @@ unsigned char SSI_Read(unsigned char data)
 void SSI_in(void){
   int SSI_CE_PA3 = (GPIO_PORTA_DATA_R & 0x08);
   uint32_t IR_Raw[3];
+  uint32_t CELL_Raw[3];
+  
   unsigned char IR_MSB[3];
-  IR_Raw[0] = 0xABF;//ADC_Get(1, IR1_CHANNEL);
-  IR_Raw[1] = 0xCDF;//ADC_Get(1, IR2_CHANNEL);
-  IR_Raw[2] = 0xEFF;//ADC_Get(1, IR3_CHANNEL);
+
+  while (1)
+  {
+    IR_Raw[0] = ADC_Get(1, IR1_CHANNEL);
+    IR_Raw[1] = ADC_Get(1, IR2_CHANNEL);
+    IR_Raw[2] = ADC_Get(1, IR3_CHANNEL);
+  
+    CELL_Raw[0] = ADC_Get(0, CELL1_CHANNEL);
+    CELL_Raw[1] = ADC_Get(0, CELL2_CHANNEL);
+    CELL_Raw[2] = ADC_Get(0, CELL3_CHANNEL);
+  }  
   
   // Only MSB 8bits
   IR_MSB[0] = IR_Raw[0] >> 4; // 0xAB = 171
