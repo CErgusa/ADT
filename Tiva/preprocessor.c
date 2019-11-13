@@ -2,6 +2,8 @@
 #include "adc.h"
 #include "preprocessor.h"
 
+int packet_to_send[MAX_PACKET_SIZE];
+
 void PP_Get(int data)
 {
   static int counter = 0;
