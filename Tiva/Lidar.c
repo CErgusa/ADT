@@ -77,15 +77,7 @@ int scan_lidar()
 	UART1_OutChar(0xA5);
 	UART1_OutChar(0x60);
 	
-	int farts = check_scan_response();
-	if(farts == RECEIVED)
-	{
-	  return RECEIVED;
-	}
-	else
-	{
-		return FAILED;
-	}
+	return check_scan_response();
 }
 
 int check_scan_response()
@@ -98,14 +90,14 @@ int check_scan_response()
     if(response == SCAN_RESPONSE_HEADER)
     {
         int find_packet = 0;
-        int scan_response[SCAN_HEADER_SIZE];
+        int scan_response[SCAN_HEADER_SIZE] = { 0, 0, 0, 0, 0, 0, 0 };
   
         int counter = 0;
         scan_response[counter++] = response;
         
         // debug: make sure the packet is as follows
         // A5 5A 05 00 00 40 81
-        while(find_packet != PACKET_FIRST_BYTE)
+        while(find_packet != SCAN_BYTE6)
         {
             scan_response[counter] = UART1_InChar();
             find_packet = scan_response[counter++];

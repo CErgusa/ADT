@@ -16,7 +16,7 @@ void health(void);
 
 void device_status(void);
 
-#define RECEIVED 1
+#define RECEIVED 0x01
 #define NOT_RECEIVED 0
 #define FAILED 0
 
