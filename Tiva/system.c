@@ -25,10 +25,11 @@ void system_init(void)
 // always being in main!
 int system_engine(void)
 {
-  while (1) {SSI_in();}
+  // while (1) {SSI_in();}
 	stop_lidar();
 	SysTick_Wait1us(10);
 	int response = scan_lidar();
+	//int farts = UART1_InChar();
 	
 	if(response == RECEIVED)
 	{

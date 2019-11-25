@@ -100,7 +100,8 @@ void UART1_Init(void)
   // UART1 Interrupt configuration
   // UART1_IM_R |= UART_IM_RXIM;
   // Set (7/8)bits will trigger
-  UART1_IFLS_R = ((~(0x3F)) | UART_IFLS_RX7_8);
+  
+	UART1_IFLS_R = ((~(0x3F)) | UART_IFLS_RX7_8);
   UART1_CTL_R |= UART_CTL_UARTEN;  // Enable UART
   NVIC_PRI1_R |= ~(0xE00000);
   NVIC_EN0_R |= 0x40; // IRQn = 6
