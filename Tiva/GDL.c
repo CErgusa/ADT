@@ -69,7 +69,7 @@ void GDL_Init(void)
 
 // GDL(General Digital Logic) 
 // PC4 -> GDL0 -> BCM26
-// PC5 -> GLD1 -> BCM19
+// PC5 -> GDL1 -> BCM19
 // PC6 -> GDL2 -> BCM5
 // PC7 -> GDL3 -> BCM0
 // PD6 -> GDL4 -> BCM22
