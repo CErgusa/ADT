@@ -128,11 +128,11 @@ void LCD_UART_Init(void)
 void LCD_UART_ModeSetup(void)
 {
   // Backlight: Blue 50% fully on
-//  UART1_OutChar(0x7C);
-//  Wait_us(50);
-//  UART1_OutChar(0x80); // RED 0%
-//  UART1_OutChar(0xD2); // BLUE about 50%
-//  Wait_ms(1);
+  //UART1_OutChar(0x7C);
+  //Wait_us(50);
+  //UART1_OutChar(0x80); // RED 0%
+  //UART1_OutChar(0xD2); // BLUE about 50%
+  //Wait_ms(1);
   
   // Blinking cursor on
   UART1_OutChar(0xFE);
