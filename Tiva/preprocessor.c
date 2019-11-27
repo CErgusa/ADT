@@ -2,7 +2,7 @@
 #include "adc.h"
 #include "preprocessor.h"
 
-int packet_to_send[MAX_PACKET_SIZE];
+// int packet_to_send[MAX_PACKET_SIZE];
 
 void PP_Get(int data)
 {
@@ -18,7 +18,7 @@ void PP_Get(int data)
 	else
 	{
 		// place the data in the packet
-		packet_to_send[counter] = data;
+		// packet_to_send[counter] = data;
 		++counter;
 	}
 }
@@ -31,13 +31,20 @@ void PP_Send(int data)
 	
 	// refresh	
 	clear_pts();              // clear all data from packet_to_send
-	packet_to_send[0] = data; // put new data in the packet_to_send
+	// packet_to_send[0] = data; // put new data in the packet_to_send
 }
 
 void clear_pts(void)
 {
 	for(int i = 0; i < MAX_PACKET_SIZE; ++i)
 	{
-		packet_to_send[i] = END_OF_PACKET;
+		i = i;
+		// packet_to_send[i] = END_OF_PACKET;
 	}
+}
+
+void PP_Get_woi(void)
+{
+	
+	return;
 }

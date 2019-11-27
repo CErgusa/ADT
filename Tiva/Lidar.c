@@ -5,7 +5,6 @@
 
 int check_scan_response(void);
 
-
 // PB0: UART1 Rx <- Lidar Tx
 // PB1: UART1 Tx -> Lidar Rx
 // PF2 -> M_SCTP(lidar): M1PWM6
@@ -117,6 +116,84 @@ int check_scan_response()
     }
 
     return NOT_RECEIVED;
+}
+
+void get_packet_header(struct scan_node * PacketHeader)
+{
+	// check first bit of packet header is correct
+	int response = (int)UART1_InChar();
+	while(response != PACKET_HEADER_FIRST)
+	{
+		response = (int)UART1_InChar();
+	}
+	
+	// check second bit of packet header is correct
+	response = (int)UART1_InChar();	
+	if(response == PACKET_HEADER_SECOND)
+	{		
+		for(int i = 0; i < 4; ++i)
+		{
+			char buffer[2];
+			switch(i)
+			{
+				case 0: PacketHeader->packet_type = (int)UART1_InChar();
+								break;
+				
+				case 1: PacketHeader->sample_quantity = (int)UART1_InChar();
+								break;
+				
+				case 2:	buffer[0] = (int)UART1_InChar(); // first 8 bits
+								buffer[1] = (int)UART1_InChar(); // second 8 bits
+								// 16-bit value, need to make it one
+								PacketHeader->start_angle = buffer[0] | buffer[1] << 8;
+								break;
+				
+				case 3: buffer[0] = (int)UART1_InChar(); // first 8 bits
+								buffer[1] = (int)UART1_InChar(); // second 8 bits
+								// 16-bit value, need to make it one
+								PacketHeader->ending_angle = buffer[0] | buffer[1] << 8;
+								break;
+			}
+		}
+	}
+}
+
+void get_packet(int * buffer, struct scan_node * PacketHeader)
+{
+	for(int i = 0; i < SCAN_NODE_OFFSET; ++i)
+	{
+		switch(i)
+			{
+				case 0: buffer[0] = PACKET_HEADER;
+								break;
+				
+				case 1: buffer[1] = PacketHeader->packet_type;
+								break;
+				
+				case 2: buffer[2] = PacketHeader->sample_quantity;
+								break;
+				
+				case 3:	buffer[3] = PacketHeader->start_angle;
+								break;
+				
+				case 4: buffer[4] = PacketHeader->ending_angle;
+								break;
+			}
+	}
+	
+	for(int i = SCAN_NODE_OFFSET; i < PacketHeader->sample_quantity + SCAN_NODE_OFFSET; ++i)
+	{
+		if(i == SCAN_NODE_OFFSET)
+			buffer[i] = DEADBEEF;
+		else
+			buffer[i] = (int)UART1_InChar();
+	}
+	buffer[PacketHeader->sample_quantity + SCAN_NODE_OFFSET] = DEADBEEF;
+}
+
+void send_packet(int * buffer)
+{
+	
 }
 
 void restart_lidar()

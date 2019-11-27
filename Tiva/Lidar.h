@@ -2,10 +2,25 @@
 #include "tm4c123gh6pm.h"
 #include "v8stdint.h"
 
+/* INIT */
 void Lidar_Init(void);
+/********/
+
+
+/* SCAN */
+struct scan_node;
 
 int scan_lidar(void);
 
+void get_packet_header(struct scan_node * PacketHeader);
+
+void get_packet(int * buf, struct scan_node * PacketHeader);
+
+void send_packet(int * buffer);
+/********/
+
+
+/* MISC */
 void restart_lidar(void);
 
 void stop_lidar(void);
@@ -15,11 +30,17 @@ void set_lidar_speed(void);
 void health(void);
 
 void device_status(void);
+/********/
+
 
 #define RECEIVED 0x01
 #define NOT_RECEIVED 0
 #define FAILED 0
+#define DEADBEEF 0xDEADBEEF
+#define DOODBEEF 0xDOODBEEF
+#define PACKET_HEADER 0x55AA
 
+#define SCAN_NODE_OFFSET 0x05
 #define SCAN_RESPONSE_HEADER 0xA5
 #define SCAN_HEADER_SIZE 0x07
 #define PACKET_FIRST_BYTE 0xA5
@@ -38,13 +59,14 @@ void device_status(void);
 
 #define END_OF_PACKET -1
 
+#define PACKET_HEADER_FIRST 0xAA
+#define PACKET_HEADER_SECOND 0x55
+
 struct scan_node{
-    uint16_t  packet_header;
-    uint8_t   packet_type;
-    uint8_t   sample_quantity;
-    uint16_t  start_angle;
-    uint16_t  ending_angle;
-    uint16_t  buffer[MAX_PACKET_SIZE];
+    int packet_type;
+    int sample_quantity;
+    int start_angle;
+    int ending_angle;
 };
 
 struct device_info{
