@@ -58,6 +58,7 @@ void SSI_in(void){
   
   unsigned char IR_CELL_MSB[6];
 
+  while(1) {
   IR_Raw[0] = ADC_Get(1, IR1_CHANNEL);
   IR_Raw[1] = ADC_Get(1, IR2_CHANNEL);
   IR_Raw[2] = ADC_Get(1, IR3_CHANNEL);
@@ -70,6 +71,7 @@ void SSI_in(void){
   IR_CELL_MSB[0] = IR_Raw[0] >> 4;
   IR_CELL_MSB[1] = IR_Raw[1] >> 4;
   IR_CELL_MSB[2] = IR_Raw[2] >> 4;
+  }
   
   IR_CELL_MSB[3] = CELL_Raw[0] >> 4;
   IR_CELL_MSB[4] = CELL_Raw[1] >> 4;
