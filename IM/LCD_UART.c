@@ -161,7 +161,7 @@ void LCD_UART_Clear(void)
 
 void LCD_UART_NewLine(void)
 {
-  UART0_OutChar(' ');
+  //UART0_OutChar(' ');
   IncrementLineIndex(INCREMENT);
 
   LCD_UART_SetCursorPos(LineIndex);
@@ -182,7 +182,7 @@ void LCD_UART_OutChar(char _char)
 {
   if (_char != ';' && _char != 0x10)
   {
-    UART0_OutChar(_char);
+    //UART0_OutChar(_char);
     UART1_OutChar(_char);
     IncrementCursor(INCREMENT);
   }

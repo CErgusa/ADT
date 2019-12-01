@@ -21,7 +21,7 @@
 
 void IM_shutdown(void)
 {
-  
+ 
 }
 
 bool IM_cell_safe(uint32_t *cell)
@@ -96,6 +96,13 @@ void IM_print_cell(uint32_t *cell_raw)
   LCD_UART_NewLine();
 }
 
+void IM_send_control_tank(char dir)
+{
+  UART0_OutChar(dir);
+  UART5_OutChar(dir);
+  LCD_UART_OutChar(dir);
+}
+
 void IntersectionManager_Init(void)
 {
   // Initialize UART: boud rate, bits, stop bit, parity, flow control
@@ -127,6 +134,10 @@ void IntersectionManager_loop(void)
   
   // Always put the cell voltage on the top
   IM_print_cell(cell);
+  
+  char dir = UART0_InChar();
+  
+  IM_send_control_tank(dir);
   
   Wait_ms(1000);
 }
