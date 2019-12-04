@@ -15,8 +15,6 @@ int scan_lidar(void);
 void get_packet_header(struct scan_node * PacketHeader);
 
 void get_packet(int * buf, struct scan_node * PacketHeader);
-
-void send_packet(int * buffer);
 /********/
 
 

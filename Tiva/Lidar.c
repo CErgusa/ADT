@@ -191,11 +191,6 @@ void get_packet(int * buffer, struct scan_node * PacketHeader)
 	buffer[PacketHeader->sample_quantity + SCAN_NODE_OFFSET] = DEADBEEF;
 }
 
-void send_packet(int * buffer)
-{
-	
-}
-
 void restart_lidar()
 {
 		// restart command [A5 40]

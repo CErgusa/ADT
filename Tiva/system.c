@@ -91,30 +91,17 @@ int system_engine(void)
 		// init struct with noticable variables for debugger
 		struct scan_node PacketHeader = { 0xAA, 0xAA, 0xAAAA, 0xAAAA };
 		
-		/* SHOULD BE IN WHILE LOOP */
-		
 		// get all info from header
 		get_packet_header(&PacketHeader);
 		
 		// get rest of the packet
 		get_packet(buffer, &PacketHeader);
 		
-		// send the full packet
-    
     while (1)
     {
+			// send the full packet
       system_send(buffer);
     }
-    
-		
-		/* END WHILE LOOP */
-		
-		while(1)
-		{
-			;
-		}
-		
-		//return NO_ERROR;
 	}
 	
 	return ERROR;
