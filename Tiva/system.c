@@ -41,6 +41,12 @@ void system_send(int *buffer)
   int IRCELLcount = 0;
   
   int SSI_CE_PA3 = (GPIO_PORTA_DATA_R & 0x08);
+  
+  while (SSI_CE_PA3 == SSI0_CE_OFF)
+  {
+    SSI_CE_PA3 = (GPIO_PORTA_DATA_R & 0x08);
+  }
+  
   if (SSI_CE_PA3 == SSI0_CE_ON)
   {
     // First sending

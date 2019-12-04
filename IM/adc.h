@@ -26,11 +26,4 @@
 
 void ADC0_Init(void);
 void ADC1_Init(void);
-
-uint32_t ADC0_Distance1(void);
-
-uint32_t ADC0_Distance2(void);
-
-uint32_t ADC0_Distance3(void);
-
 uint32_t ADC_Get(int ADC_INDEX, int CHANNEL);

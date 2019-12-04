@@ -467,6 +467,16 @@
               <FileType>5</FileType>
               <FilePath>.\adc.h</FilePath>
             </File>
+            <File>
+              <FileName>IntersectionManager.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\IntersectionManager.c</FilePath>
+            </File>
+            <File>
+              <FileName>IntersectionManager.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\IntersectionManager.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

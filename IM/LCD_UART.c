@@ -128,11 +128,11 @@ void LCD_UART_Init(void)
 void LCD_UART_ModeSetup(void)
 {
   // Backlight: Blue 50% fully on
-//  UART1_OutChar(0x7C);
-//  Wait_us(50);
-//  UART1_OutChar(0x80); // RED 0%
-//  UART1_OutChar(0xD2); // BLUE about 50%
-//  Wait_ms(1);
+  //UART1_OutChar(0x7C);
+  //Wait_us(50);
+  //UART1_OutChar(0x80); // RED 0%
+  //UART1_OutChar(0xD2); // BLUE about 50%
+  //Wait_ms(1);
   
   // Blinking cursor on
   UART1_OutChar(0xFE);
@@ -161,7 +161,7 @@ void LCD_UART_Clear(void)
 
 void LCD_UART_NewLine(void)
 {
-  UART0_OutChar(' ');
+  //UART0_OutChar(' ');
   IncrementLineIndex(INCREMENT);
 
   LCD_UART_SetCursorPos(LineIndex);
@@ -182,7 +182,7 @@ void LCD_UART_OutChar(char _char)
 {
   if (_char != ';' && _char != 0x10)
   {
-    UART0_OutChar(_char);
+    //UART0_OutChar(_char);
     UART1_OutChar(_char);
     IncrementCursor(INCREMENT);
   }
