@@ -184,11 +184,24 @@ void get_packet(int * buffer, struct scan_node * PacketHeader)
 	for(int i = SCAN_NODE_OFFSET; i < PacketHeader->sample_quantity + SCAN_NODE_OFFSET; ++i)
 	{
 		if(i == SCAN_NODE_OFFSET)
-			buffer[i] = DEADBEEF;
+			buffer[i] = DOODBEEF;
 		else
 			buffer[i] = (int)UART1_InChar();
 	}
 	buffer[PacketHeader->sample_quantity + SCAN_NODE_OFFSET] = DEADBEEF;
+}
+
+void reset_lidar_shit(int * buffer, struct scan_node * PacketHeader)
+{
+	for(int i = 0; i < MAX_PACKET_SIZE; ++i)
+	{
+			buffer[i] = 0;
+	}
+	
+	PacketHeader->packet_type = 0xAA;
+	PacketHeader->sample_quantity = 0xAA;
+	PacketHeader->start_angle = 0xAAAA;
+	PacketHeader->ending_angle = 0xAAAA;
 }
 
 void restart_lidar()
