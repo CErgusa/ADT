@@ -92,21 +92,24 @@ int system_engine(void)
     //UART1_enableInterrupts();
 		
 		// get buffer for sample array
-		int buffer[MAX_PACKET_SIZE];
+		int buffer[MAX_PACKET_SIZE] = {0};
 		
-		// init struct with noticable variables for debugger
+			// init struct with noticable variables for debugger
 		struct scan_node PacketHeader = { 0xAA, 0xAA, 0xAAAA, 0xAAAA };
 		
-		// get all info from header
-		get_packet_header(&PacketHeader);
-		
-		// get rest of the packet
-		get_packet(buffer, &PacketHeader);
-		
     while (1)
-    {
+    {		
+				// get all info from header
+			get_packet_header(&PacketHeader);
+				
+				// get rest of the packet
+			get_packet(buffer, &PacketHeader);			
+			
 			// send the full packet
       system_send(buffer);
+			
+			// clear the buffer and reset the noticable variables in scan_node
+			reset_lidar_shit(buffer, &PacketHeader);
     }
 	}
 	

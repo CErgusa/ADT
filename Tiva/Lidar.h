@@ -15,6 +15,9 @@ int scan_lidar(void);
 void get_packet_header(struct scan_node * PacketHeader);
 
 void get_packet(int * buf, struct scan_node * PacketHeader);
+
+void reset_lidar_shit(int * buffer, struct scan_node * PacketHeader);
+
 /********/
 
 
@@ -34,8 +37,8 @@ void device_status(void);
 #define RECEIVED 0x01
 #define NOT_RECEIVED 0
 #define FAILED 0
-#define DEADBEEF 0xDEADBEEF
-#define DOODBEEF 0xDOODBEEF
+#define DEADBEEF 0xBEEF
+#define DOODBEEF 0xFEED
 #define PACKET_HEADER 0x55AA
 
 #define SCAN_NODE_OFFSET 0x05
