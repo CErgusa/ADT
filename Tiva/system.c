@@ -40,11 +40,11 @@ void system_send(int *buffer)
 
   int IRCELLcount = 0;
   
-  int SSI_CE_PA3 = (GPIO_PORTA_DATA_R & 0x08);
+  int SSI_CE_PA3 = (GPIO_PORTA_DATA_R & 0x08) >> 3;
   
   while (SSI_CE_PA3 == SSI0_CE_OFF)
   {
-    SSI_CE_PA3 = (GPIO_PORTA_DATA_R & 0x08);
+    SSI_CE_PA3 = (GPIO_PORTA_DATA_R & 0x08) >> 3;
   }
   
   if (SSI_CE_PA3 == SSI0_CE_ON)
@@ -85,7 +85,7 @@ int system_engine(void)
   // while (1) {SSI_in();}
 	stop_lidar();
 	SysTick_Wait1us(10);
-	int response = scan_lidar();
+	int response = scan_lidar();	
 	
 	if(response == RECEIVED)
 	{
