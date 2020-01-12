@@ -39,14 +39,14 @@ void system_send(int *buffer)
   IR_CELL_MSB[5] = ADC_Get(0, CELL3_CHANNEL) >> 4;
 
   int IRCELLcount = 0;
-  
+
   int SSI_CE_PA3 = (GPIO_PORTA_DATA_R & 0x08) >> 3;
-  
+
   while (SSI_CE_PA3 == SSI0_CE_OFF)
   {
     SSI_CE_PA3 = (GPIO_PORTA_DATA_R & 0x08) >> 3;
   }
-  
+
   if (SSI_CE_PA3 == SSI0_CE_ON)
   {
     // First sending
@@ -85,34 +85,33 @@ int system_engine(void)
   // while (1) {SSI_in();}
 	stop_lidar();
 	SysTick_Wait1us(10);
-	
 	int response = scan_lidar();
-	
+
 	if(response == RECEIVED)
 	{
     //UART1_enableInterrupts();
-		
+
 		// get buffer for sample array
 		int buffer[MAX_PACKET_SIZE] = {0};
-		
+
 			// init struct with noticable variables for debugger
 		struct scan_node PacketHeader = { 0xAA, 0xAA, 0xAAAA, 0xAAAA };
-		
+
     while (1)
-    {		
+    {
 				// get all info from header
 			get_packet_header(&PacketHeader);
-				
+
 				// get rest of the packet
 			get_packet(buffer, &PacketHeader);
-			
+
 			// send the full packet
       system_send(buffer);
-			
+
 			// clear the buffer and reset the noticable variables in scan_node
 			reset_lidar_shit(buffer, &PacketHeader);
     }
 	}
-	
+
 	return ERROR;
 }
