@@ -85,6 +85,7 @@ int system_engine(void)
   // while (1) {SSI_in();}
 	stop_lidar();
 	SysTick_Wait1us(10);
+	
 	int response = scan_lidar();
 	
 	if(response == RECEIVED)
@@ -103,7 +104,7 @@ int system_engine(void)
 			get_packet_header(&PacketHeader);
 				
 				// get rest of the packet
-			get_packet(buffer, &PacketHeader);			
+			get_packet(buffer, &PacketHeader);
 			
 			// send the full packet
       system_send(buffer);

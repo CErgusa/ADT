@@ -32,7 +32,11 @@ void health(void);
 
 void device_status(void);
 /********/
-
+#define NUMBER_OF_SAMPLES_INDEX 2
+#define STARTING_ANGLE_INDEX 3
+#define ENDING_ANGLE_INDEX 4
+#define FIRST_DATA_SAMPLE_INDEX 6
+#define HEADER_LENGTH 5
 
 #define RECEIVED 0x01
 #define NOT_RECEIVED 0
