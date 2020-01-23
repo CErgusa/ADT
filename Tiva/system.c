@@ -31,7 +31,7 @@ void system_send(int *buffer)
   // Send IR, Cell data
   unsigned char IR_CELL_MSB[6];
   // Only MSB 8bits
-  
+
   //IR_CELL_MSB[0] = ADC_Get(1, IR1_CHANNEL) >> 4;
   //IR_CELL_MSB[1] = ADC_Get(1, IR2_CHANNEL) >> 4;
   //IR_CELL_MSB[2] = ADC_Get(1, IR3_CHANNEL) >> 4;
@@ -102,12 +102,12 @@ int system_engine(void)
   // while (1) {SSI_in();}
 	stop_lidar();
 	SysTick_Wait1us(10);
-	int response = scan_lidar();	
-	
+	int response = scan_lidar();
+
 	if(response == RECEIVED)
 	{
     //UART1_enableInterrupts();
-		
+
 		// get buffer for sample array
 		int buffer[MAX_PACKET_SIZE];
     int i = 0;
@@ -115,13 +115,13 @@ int system_engine(void)
     {
       buffer[i] = 0xABCD;
     }
-		
 			// init struct with noticable variables for debugger
 		struct scan_node PacketHeader = { 0xAA, 0xAA, 0xAAAA, 0xAAAA };
-		
+
     while (1)
     {
 				// get all info from header
+
 			//get_packet_header(&PacketHeader);
 				
 				// get rest of the packet
@@ -129,7 +129,7 @@ int system_engine(void)
 			
 			// send the full packet
       //system_send(buffer);
-			
+      
 			// clear the buffer and reset the noticable variables in scan_node
 			//reset_lidar_shit(buffer, &PacketHeader);
             
@@ -137,6 +137,6 @@ int system_engine(void)
       system_send(buffer);
     }
 	}
-	
+
 	return ERROR;
 }

@@ -1,7 +1,10 @@
 #include "Lidar.h"
 #include <stdbool.h>
 #include <stdint.h>
+#include <math.h>
 #include "SysTick (2).h"
+
+#define pi  3.14159f
 
 int check_scan_response(void);
 
@@ -170,7 +173,7 @@ void get_packet(int * buffer, struct scan_node * PacketHeader)
 				case 1: buffer[1] = PacketHeader->packet_type;
 								break;
 				
-				case 2: buffer[2] = PacketHeader->sample_quantity;
+				case 2: buffer[2] = PacketHeader->sample_quantity - 1;
 								break;
 				
 				case 3:	buffer[3] = PacketHeader->start_angle;
@@ -186,11 +189,11 @@ void get_packet(int * buffer, struct scan_node * PacketHeader)
 		if(i == SCAN_NODE_OFFSET)
 			buffer[i] = DOODBEEF;
 		else
-			buffer[i] = (int)UART1_InChar();
+			buffer[i] = ((int)UART1_InChar());
 	}
 	buffer[PacketHeader->sample_quantity + SCAN_NODE_OFFSET] = DEADBEEF;
 }
-
+	
 void reset_lidar_shit(int * buffer, struct scan_node * PacketHeader)
 {
 	for(int i = 0; i < MAX_PACKET_SIZE; ++i)
