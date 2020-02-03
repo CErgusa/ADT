@@ -51,8 +51,20 @@ unsigned char SSI_Read(unsigned char data)
 }
 
 
-void SSI_in(void){
+void SSI_in(void)
+{
+  // Trigger Interrupt
+  // GDL_Send(1); // Test GPIO interrupt
+  int i = 0;
+  for (; i < 134; ++i)
+  {
+    SSI_send_byte(i);
+  }
+  //GDL_Send(0);
 
+  while (1) { }
+
+/*
   uint32_t IR_Raw[3];
   uint32_t CELL_Raw[3];
   
@@ -96,5 +108,6 @@ void SSI_in(void){
       // Repeat until all IR sensor done
     }
   }
+*/
 }
 

@@ -59,6 +59,9 @@ void PortC_Init(void)
   // Enable digital function
   // set [7:4]
 	GPIO_PORTC_DEN_R |= 0xF0;
+
+	// Clear
+  GPIO_PORTC_DATA_R &= ~(0xF0);
 }
 
 
