@@ -1,5 +1,4 @@
 #include "system.h"
-
 #include "SysTick (2).h"
 #include "adc.h"
 #include "SSI.h"
@@ -87,7 +86,10 @@ int system_engine(void)
 
       // get rest of the packet
       get_packet(buffer, &PacketHeader);
-
+			
+			// send packet to TeraTerm
+			logger(buffer);
+			
       // send the full packet
       system_send(buffer);
       

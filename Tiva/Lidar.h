@@ -85,3 +85,12 @@ struct device_health{
     uint8_t   status;
     uint16_t  error_code;
 };
+
+void logger(int * lidar)
+{
+	int i;
+	for(i = 0; i < MAX_PACKET_SIZE; ++i)
+	{
+		UART_OutChar(lidar[i]);
+	}
+}
