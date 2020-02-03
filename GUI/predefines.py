@@ -1,8 +1,15 @@
-import tkinter
+# seed the pseudorandom number generator
+import random
+
+
+def random_number():
+    return random.randint(0, 3)
+
 
 GRID_SIZE = 10
 INTERSECTION_SIZE = 3
 
+NONE = -1
 UP = 0
 DOWN = 1
 LEFT = 2
@@ -33,144 +40,6 @@ class Path:
     # using up down left and right predefines
     def __int__(self, path):
         self.direction = path
-
-
-def tkinter_init(car1, car2):
-    window = tkinter.Tk()
-    index = -1
-    window.title("ADT - Security")
-    window.geometry('500x400')
-    window.resizable(False, False)
-
-    while index < 9:
-        tkinter_update(window, index)
-        index = index + 1
-    tkinter.Label(window, text=EMPTY, bg='khaki').grid(row=0, column=0)
-    tkinter.Label(window, text=EMPTY, bg='khaki').grid(row=0, column=1)
-    tkinter.Label(window, text=EMPTY, bg='khaki').grid(row=0, column=2)
-    tkinter.Label(window, text=EMPTY, bg='khaki').grid(row=1, column=0)
-    tkinter.Label(window, text=EMPTY, bg='khaki').grid(row=1, column=1)
-    tkinter.Label(window, text=EMPTY, bg='khaki').grid(row=1, column=2)
-    tkinter.Label(window, text=EMPTY, bg='khaki').grid(row=2, column=0)
-    tkinter.Label(window, text=EMPTY, bg='khaki').grid(row=2, column=1)
-
-    tkinter.Label(window, text=EMPTY, bg='khaki').grid(row=7, column=0)
-    tkinter.Label(window, text=EMPTY, bg='khaki').grid(row=7, column=1)
-    tkinter.Label(window, text=EMPTY, bg='khaki').grid(row=7, column=2)
-    tkinter.Label(window, text=EMPTY, bg='khaki').grid(row=8, column=0)
-    tkinter.Label(window, text=EMPTY, bg='khaki').grid(row=8, column=1)
-    tkinter.Label(window, text=EMPTY, bg='khaki').grid(row=8, column=2)
-    tkinter.Label(window, text=EMPTY, bg='khaki').grid(row=9, column=0)
-    tkinter.Label(window, text=EMPTY, bg='khaki').grid(row=9, column=1)
-    tkinter.Label(window, text=EMPTY, bg='khaki').grid(row=9, column=2)
-
-    tkinter.Label(window, text=EMPTY, bg='khaki').grid(row=7, column=8)
-    tkinter.Label(window, text=EMPTY, bg='khaki').grid(row=7, column=9)
-    tkinter.Label(window, text=EMPTY, bg='khaki').grid(row=8, column=7)
-    tkinter.Label(window, text=EMPTY, bg='khaki').grid(row=8, column=8)
-    tkinter.Label(window, text=EMPTY, bg='khaki').grid(row=8, column=9)
-    tkinter.Label(window, text=EMPTY, bg='khaki').grid(row=9, column=7)
-    tkinter.Label(window, text=EMPTY, bg='khaki').grid(row=9, column=8)
-    tkinter.Label(window, text=EMPTY, bg='khaki').grid(row=9, column=9)
-
-    tkinter.Label(window, text=EMPTY, bg='khaki').grid(row=2, column=8)
-    tkinter.Label(window, text=EMPTY, bg='khaki').grid(row=2, column=9)
-    tkinter.Label(window, text=EMPTY, bg='khaki').grid(row=1, column=7)
-    tkinter.Label(window, text=EMPTY, bg='khaki').grid(row=1, column=8)
-    tkinter.Label(window, text=EMPTY, bg='khaki').grid(row=1, column=9)
-    tkinter.Label(window, text=EMPTY, bg='khaki').grid(row=0, column=7)
-    tkinter.Label(window, text=EMPTY, bg='khaki').grid(row=0, column=8)
-    tkinter.Label(window, text=EMPTY, bg='khaki').grid(row=0, column=9)
-
-    tkinter.Label(window, text=BUILDING, bg='indian red').grid(row=2, column=2)
-    tkinter.Label(window, text=BUILDING, bg='indian red').grid(row=2, column=3)
-    tkinter.Label(window, text=BUILDING, bg='indian red').grid(row=3, column=2)
-    tkinter.Label(window, text=BUILDING, bg='indian red').grid(row=3, column=3)
-
-    tkinter.Label(window, text=BUILDING, bg='indian red').grid(row=2, column=6)
-    tkinter.Label(window, text=BUILDING, bg='indian red').grid(row=2, column=7)
-    tkinter.Label(window, text=BUILDING, bg='indian red').grid(row=3, column=6)
-    tkinter.Label(window, text=BUILDING, bg='indian red').grid(row=3, column=7)
-
-    tkinter.Label(window, text=BUILDING, bg='indian red').grid(row=6, column=2)
-    tkinter.Label(window, text=BUILDING, bg='indian red').grid(row=6, column=3)
-    tkinter.Label(window, text=BUILDING, bg='indian red').grid(row=7, column=2)
-    tkinter.Label(window, text=BUILDING, bg='indian red').grid(row=7, column=3)
-
-    tkinter.Label(window, text=BUILDING, bg='indian red').grid(row=6, column=6)
-    tkinter.Label(window, text=BUILDING, bg='indian red').grid(row=6, column=7)
-    tkinter.Label(window, text=BUILDING, bg='indian red').grid(row=7, column=6)
-    tkinter.Label(window, text=BUILDING, bg='indian red').grid(row=7, column=7)
-
-    tkinter.Label(window, text=INTERSECTION1, bg='dodger blue').grid(row=0, column=3)
-    tkinter.Label(window, text=INTERSECTION1, bg='dodger blue').grid(row=0, column=4)
-    tkinter.Label(window, text=INTERSECTION1, bg='dodger blue').grid(row=0, column=5)
-    tkinter.Label(window, text=INTERSECTION1, bg='dodger blue').grid(row=0, column=6)
-    tkinter.Label(window, text=INTERSECTION1, bg='dodger blue').grid(row=1, column=3)
-    tkinter.Label(window, text=INTERSECTION1, bg='dodger blue').grid(row=1, column=4)
-    tkinter.Label(window, text=INTERSECTION1, bg='dodger blue').grid(row=1, column=5)
-    tkinter.Label(window, text=INTERSECTION1, bg='dodger blue').grid(row=1, column=6)
-    tkinter.Label(window, text=INTERSECTION1, bg='dodger blue').grid(row=2, column=4)
-    tkinter.Label(window, text=INTERSECTION1, bg='dodger blue').grid(row=2, column=5)
-
-    tkinter.Label(window, text=INTERSECTION2, bg='dodger blue').grid(row=3, column=0)
-    tkinter.Label(window, text=INTERSECTION2, bg='dodger blue').grid(row=4, column=0)
-    tkinter.Label(window, text=INTERSECTION2, bg='dodger blue').grid(row=5, column=0)
-    tkinter.Label(window, text=INTERSECTION2, bg='dodger blue').grid(row=6, column=0)
-    tkinter.Label(window, text=INTERSECTION2, bg='dodger blue').grid(row=3, column=1)
-    tkinter.Label(window, text=INTERSECTION2, bg='dodger blue').grid(row=4, column=1)
-    tkinter.Label(window, text=INTERSECTION2, bg='dodger blue').grid(row=5, column=1)
-    tkinter.Label(window, text=INTERSECTION2, bg='dodger blue').grid(row=6, column=1)
-    tkinter.Label(window, text=INTERSECTION2, bg='dodger blue').grid(row=4, column=2)
-    tkinter.Label(window, text=INTERSECTION2, bg='dodger blue').grid(row=5, column=2)
-
-    tkinter.Label(window, text=INTERSECTION3, bg='deep sky blue').grid(row=3, column=4)
-    tkinter.Label(window, text=INTERSECTION3, bg='deep sky blue').grid(row=3, column=5)
-    tkinter.Label(window, text=INTERSECTION3, bg='deep sky blue').grid(row=4, column=3)
-    tkinter.Label(window, text=INTERSECTION3, bg='deep sky blue').grid(row=4, column=4)
-    tkinter.Label(window, text=INTERSECTION3, bg='deep sky blue').grid(row=4, column=5)
-    tkinter.Label(window, text=INTERSECTION3, bg='deep sky blue').grid(row=4, column=6)
-    tkinter.Label(window, text=INTERSECTION3, bg='deep sky blue').grid(row=5, column=3)
-    tkinter.Label(window, text=INTERSECTION3, bg='deep sky blue').grid(row=5, column=4)
-    tkinter.Label(window, text=INTERSECTION3, bg='deep sky blue').grid(row=5, column=5)
-    tkinter.Label(window, text=INTERSECTION3, bg='deep sky blue').grid(row=5, column=6)
-    tkinter.Label(window, text=INTERSECTION3, bg='deep sky blue').grid(row=6, column=5)
-    tkinter.Label(window, text=INTERSECTION3, bg='deep sky blue').grid(row=6, column=4)
-
-    tkinter.Label(window, text=INTERSECTION4, bg='dodger blue').grid(row=3, column=9)
-    tkinter.Label(window, text=INTERSECTION4, bg='dodger blue').grid(row=4, column=9)
-    tkinter.Label(window, text=INTERSECTION4, bg='dodger blue').grid(row=5, column=9)
-    tkinter.Label(window, text=INTERSECTION4, bg='dodger blue').grid(row=6, column=9)
-    tkinter.Label(window, text=INTERSECTION4, bg='dodger blue').grid(row=3, column=8)
-    tkinter.Label(window, text=INTERSECTION4, bg='dodger blue').grid(row=4, column=8)
-    tkinter.Label(window, text=INTERSECTION4, bg='dodger blue').grid(row=5, column=8)
-    tkinter.Label(window, text=INTERSECTION4, bg='dodger blue').grid(row=6, column=8)
-    tkinter.Label(window, text=INTERSECTION4, bg='dodger blue').grid(row=4, column=7)
-    tkinter.Label(window, text=INTERSECTION4, bg='dodger blue').grid(row=5, column=7)
-
-    tkinter.Label(window, text=INTERSECTION5, bg='dodger blue').grid(row=9, column=3)
-    tkinter.Label(window, text=INTERSECTION5, bg='dodger blue').grid(row=9, column=4)
-    tkinter.Label(window, text=INTERSECTION5, bg='dodger blue').grid(row=9, column=5)
-    tkinter.Label(window, text=INTERSECTION5, bg='dodger blue').grid(row=9, column=6)
-    tkinter.Label(window, text=INTERSECTION5, bg='dodger blue').grid(row=8, column=3)
-    tkinter.Label(window, text=INTERSECTION5, bg='dodger blue').grid(row=8, column=4)
-    tkinter.Label(window, text=INTERSECTION5, bg='dodger blue').grid(row=8, column=5)
-    tkinter.Label(window, text=INTERSECTION5, bg='dodger blue').grid(row=8, column=6)
-    tkinter.Label(window, text=INTERSECTION5, bg='dodger blue').grid(row=7, column=4)
-    tkinter.Label(window, text=INTERSECTION5, bg='dodger blue').grid(row=7, column=5)
-
-    tkinter.Label(window, text=CAR, bg='forest green').grid(row=car1.point.x, column=car1.point.y)
-    tkinter.Label(window, text=CAR, bg='forest green').grid(row=car2.point.x, column=car2.point.y)
-
-    #time.sleep(5)
-    #window.destroy()
-    window.mainloop()
-
-
-def tkinter_update(window, index):
-    index = index + 1
-    tkinter.Label(window, text=index).grid(row=index, column=10)
-    tkinter.Label(window, text=index).grid(row=10, column=index)
 
 
 def create_graph():
@@ -424,3 +293,4 @@ def turn(current_direction, path, intersection):
             intersection_array = [-1, 0, 0, -1], [0, 0, 0, 0], [1, 2, 3, 4]
 
     return intersection_array
+
