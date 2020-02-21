@@ -6,97 +6,78 @@
 #include "Lidar.h"
 #include "tm4c123gh6pm.h"
 #include "GDL.h"
+#include "FPU.h"
 
-#define SSI0_CE_ON 0x0
-#define SSI0_CE_OFF 0x1
+void system_IR_cell_add_packet(char *buffer)
+{
+  // Send IR, Cell data
+  // Only MSB 8bits
+  buffer[MAX_PACKET_SIZE] = 11;//ADC_Get(1, IR1_CHANNEL) >> 4;
+  buffer[MAX_PACKET_SIZE+1] = 22;//ADC_Get(1, IR2_CHANNEL) >> 4;
+  buffer[MAX_PACKET_SIZE+2] = 33;//ADC_Get(1, IR3_CHANNEL) >> 4;
+  buffer[MAX_PACKET_SIZE+3] = 44;//ADC_Get(0, CELL1_CHANNEL) >> 4;
+  buffer[MAX_PACKET_SIZE+4] = 55;//ADC_Get(0, CELL2_CHANNEL) >> 4;
+  buffer[MAX_PACKET_SIZE+5] = 66;//ADC_Get(0, CELL3_CHANNEL) >> 4;
+}
 
 void system_init(void)
 {
-	SSI_Init();     // SPI communication
-	UART_Init();    // TeraTerm UART communication
 	SysTick_Init(); // System timer
+  FPU_Init();     // Enable Floating Point Unit
+  SSI_Init();     // SPI communication
+  UART_Init();    // TeraTerm UART communication
 	ADC0_Init();    // Batter cell voltage
   ADC1_Init();    // IR sensors
 	UART1_Init();   // Lidar UART Communication
 	GDL_Init();     // General Data Logic
 }
 
-void system_send(int *buffer)
+void system_send(char *buffer)
 {
-  // Send IR, Cell data
-  // Only MSB 8bits
-  buffer[MAX_PACKET_SIZE] = ADC_Get(1, IR1_CHANNEL) >> 4;
-  buffer[MAX_PACKET_SIZE+1] = ADC_Get(1, IR2_CHANNEL) >> 4;
-  buffer[MAX_PACKET_SIZE+2] = ADC_Get(1, IR3_CHANNEL) >> 4;
-  buffer[MAX_PACKET_SIZE+3] = ADC_Get(0, CELL1_CHANNEL) >> 4;
-  buffer[MAX_PACKET_SIZE+4] = ADC_Get(0, CELL2_CHANNEL) >> 4;
-  buffer[MAX_PACKET_SIZE+5] = ADC_Get(0, CELL3_CHANNEL) >> 4;
-
-  int lidar_split = 1;
-
   // Trigger GPIO interrupt of Rpi
   GDL_Send(0x01);
-
-  int i = 0;
-  while (i < 134)
+  int i;
+  for (i = 0; i < MAX_PACKET_SIZE+6; ++i)
   {
-    // Lidar packet
-    if (i < MAX_PACKET_SIZE)
-    {
-      SSI_send_byte((buffer[i] >> (8*(lidar_split--))) & 0xFF);
-      if (lidar_split < 0)
-      {
-        ++i;
-        lidar_split = 1;
-      }
-    }
-    else // IR, battery cell data
-    {
-      SSI_send_byte(buffer[i]);
-      ++i;
-    }
+    SSI_send_byte(buffer[i]);
   }
   // Reset GPIO interrupt
   GDL_Send(0x00);
 }
+
 
 // Jun change this as needed, this is our new main function
 // I just wanted to move things towards an engine rather than
 // always being in main!
 int system_engine(void)
 {
+  // Before the first run, Stop Lidar first
   stop_lidar();
-  SysTick_Wait1us(10);
-  int response = scan_lidar();
 
-  if(response == RECEIVED)
+  // get buffer for sample array
+
+  lidar_scan_response();
+
+  while (1)
   {
-    //UART1_enableInterrupts();
+    char buffer[MAX_PACKET_SIZE] = { 0 };
+    // get rest of the packet
+    int success = lidar_get_packet(buffer);
 
-    // get buffer for sample array
-    int buffer[MAX_PACKET_SIZE+6] = {0};
-
-    // init struct with noticable variables for debugger
-    struct scan_node PacketHeader = { 0xAA, 0xAA, 0xAAAA, 0xAAAA };
-
-    while (1)
+    if (success)
     {
-      // get all info from header
-      get_packet_header(&PacketHeader);
-
-      // get rest of the packet
-      get_packet(buffer, &PacketHeader);
-			
-			// send packet to TeraTerm
-			logger(buffer);
-			
-      // send the full packet
-      system_send(buffer);
-      
-      // clear the buffer and reset the noticeable variables in scan_node
-      reset_lidar_shit(buffer, &PacketHeader);
+      continue;
+      //system_IR_cell_add_packet(buffer);
+      //system_send(buffer);
+    }
+    else // Some problem occur, not aligned correctly?
+    {
+      stop_lidar();
+      // get buffer for sample array
+      lidar_scan_response();
     }
   }
+
 
   return ERROR;
 }

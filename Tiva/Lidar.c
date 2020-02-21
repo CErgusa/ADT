@@ -1,12 +1,8 @@
 #include "Lidar.h"
-#include <stdbool.h>
-#include <stdint.h>
 #include <math.h>
 #include "SysTick (2).h"
 
 #define pi  3.14159f
-
-int check_scan_response(void);
 
 // PB0: UART1 Rx <- Lidar Tx
 // PB1: UART1 Tx -> Lidar Rx
@@ -73,138 +69,198 @@ void Lidar_Init(void)
 }
 
 
-int scan_lidar()
+void lidar_scan_command(void)
 {
 		// scan command [A5 60]
 	UART1_OutChar(0xA5);
 	UART1_OutChar(0x60);
-	
-	return check_scan_response();
 }
 
-int check_scan_response()
+int lidar_scan_response(void)
 {
-    int response = (int)UART1_InChar();
-    while(response != SCAN_RESPONSE_HEADER)
-    {
-      response = (int)UART1_InChar();
-    }
-    if(response == SCAN_RESPONSE_HEADER)
-    {
-        int find_packet = 0;
-        int scan_response[SCAN_HEADER_SIZE] = { 0, 0, 0, 0, 0, 0, 0 };
-  
-        int counter = 0;
-        scan_response[counter++] = response;
-        
-        // debug: make sure the packet is as follows
-        // A5 5A 05 00 00 40 81
-        while(find_packet != SCAN_BYTE6)
-        {
-            scan_response[counter] = UART1_InChar();
-            find_packet = scan_response[counter++];
-        }
+  char scan_response[SCAN_HEADER_SIZE] = { 0 };
+  int i;
 
-        if(scan_response[0] == SCAN_BYTE0 && scan_response[1] == SCAN_BYTE1 &&
-					 scan_response[2] == SCAN_BYTE2 && scan_response[3] == SCAN_BYTE3 &&
-   	       scan_response[4] == SCAN_BYTE4 && scan_response[5] == SCAN_BYTE5 &&
-           scan_response[6] == SCAN_BYTE6)
-        {
-            return RECEIVED;
-        }
-        else
-        {
-            return NOT_RECEIVED;
-        }
+  do
+  {
+    lidar_scan_command();
+    for (i = 0; i < SCAN_HEADER_SIZE; ++i)
+    {
+      scan_response[i] = UART1_InChar();
     }
-
-    return NOT_RECEIVED;
+  } while ( (scan_response[0] != SCAN_BYTE0) || // 0xA5
+            (scan_response[1] != SCAN_BYTE1) || // 0x5A
+            (scan_response[2] != SCAN_BYTE2) || // 0x05
+            (scan_response[3] != SCAN_BYTE3) || // 0x00
+            (scan_response[4] != SCAN_BYTE4) || // 0x00
+            (scan_response[5] != SCAN_BYTE5) || // 0x40
+            (scan_response[6] != SCAN_BYTE6));   // 0x81
+  return RECEIVED;
 }
 
 void get_packet_header(struct scan_node * PacketHeader)
 {
-	// check first bit of packet header is correct
-	int response = (int)UART1_InChar();
-	while(response != PACKET_HEADER_FIRST)
-	{
-		response = (int)UART1_InChar();
-	}
-	
-	// check second bit of packet header is correct
-	response = (int)UART1_InChar();	
-	if(response == PACKET_HEADER_SECOND)
-	{		
-		for(int i = 0; i < 4; ++i)
-		{
-			char buffer[2];
-			switch(i)
-			{
-				case 0: PacketHeader->packet_type = (int)UART1_InChar();
-								break;
-				
-				case 1: PacketHeader->sample_quantity = (int)UART1_InChar();
-								break;
-				
-				case 2:	buffer[0] = (int)UART1_InChar(); // first 8 bits
-								buffer[1] = (int)UART1_InChar(); // second 8 bits
-								// 16-bit value, need to make it one
-								PacketHeader->start_angle = buffer[0] | buffer[1] << 8;
-								break;
-				
-				case 3: buffer[0] = (int)UART1_InChar(); // first 8 bits
-								buffer[1] = (int)UART1_InChar(); // second 8 bits
-								// 16-bit value, need to make it one
-								PacketHeader->ending_angle = buffer[0] | buffer[1] << 8;
-								break;
-			}
-		}
-	}
+	// check HH of packet header is correct
+  char headers[10];
+
+  int i;
+  for(i = 0; i < 10; ++i)
+  {
+    headers[i] = UART1_InChar();
+  }
+
+  PacketHeader->packet_header = (int)((headers[1] << 8) | headers[0]);
+	PacketHeader->packet_type = headers[2];
+	PacketHeader->sample_quantity = headers[3];
+	PacketHeader->start_angle = (int)((headers[5] << 8) | headers[4]);
+  PacketHeader->ending_angle = (int)((headers[7] << 8) | headers[6]);
+  PacketHeader->check_code = (int)((headers[9] << 8) | headers[8]);
 }
 
-void get_packet(int * buffer, struct scan_node * PacketHeader)
+void lidar_push_filtered_to_buffer(int *angle_filtered, int *dist_filtered, char *buffer1)
 {
-	for(int i = 0; i < SCAN_NODE_OFFSET; ++i)
-	{
-		switch(i)
-			{
-				case 0: buffer[0] = PACKET_HEADER;
-								break;
-				
-				case 1: buffer[1] = PacketHeader->packet_type;
-								break;
-				
-				case 2: buffer[2] = PacketHeader->sample_quantity - 1;
-								break;
-				
-				case 3:	buffer[3] = PacketHeader->start_angle;
-								break;
-				
-				case 4: buffer[4] = PacketHeader->ending_angle;
-								break;
-			}
-	}
-	
-	for(int i = SCAN_NODE_OFFSET; i < PacketHeader->sample_quantity + SCAN_NODE_OFFSET; ++i)
-	{
-		if(i == SCAN_NODE_OFFSET)
-			buffer[i] = DOODBEEF;
-		else
-			buffer[i] = ((int)UART1_InChar());
-	}
-	buffer[PacketHeader->sample_quantity + SCAN_NODE_OFFSET] = DEADBEEF;
+  char buffer[167] = {0};
+  int f_size = buffer[0];
+  int i;
+  for (i = 1; i < f_size; ++i)
+  {
+    buffer[i] = angle_filtered[f_size] >> 8;
+    buffer[i+1] = (angle_filtered[f_size] | 0x00FF);
+
+    buffer[f_size + i] = dist_filtered[f_size] >> 8;
+    buffer[f_size + i + 1] = (dist_filtered[f_size] | 0x00FF);
+  }
 }
-	
-void reset_lidar_shit(int * buffer, struct scan_node * PacketHeader)
+
+
+void lidar_calculate_angle_distance(char *raw, char *buffer1)
 {
-	for(int i = 0; i < MAX_PACKET_SIZE; ++i)
-	{
-			buffer[i] = 0;
-	}
-	
-	PacketHeader->packet_type = 0xAA;
-	PacketHeader->sample_quantity = 0xAA;
-	PacketHeader->start_angle = 0xAAAA;
-	PacketHeader->ending_angle = 0xAAAA;
+  char lsn = raw[3];
+  int fsa = (raw[4] | (raw[5] << 8));
+  int lsa = (raw[6] | (raw[7] << 8));
+
+  int distance[0x28] = { 0 };
+  float ang_correct[0x28] = { 0.f };
+  int angle_filtered[0x28] = { 0 };
+  int dist_filtered[0x28] = { 0 };
+
+  float diff_angle = 0.0f;
+  float starting_angle = 0.0f;
+  float ending_angle = 0.f;
+  float mid_angle = 0.0f;
+
+  int i;
+  int f_size = 0;
+
+  for (i = 0; i < lsn;)
+  {
+    int i_th_sample = (2 * i) + 10;
+    int raw_dist = (raw[i_th_sample] | (raw[i_th_sample+1] << 8));
+    if (raw_dist == 0)
+    {
+      distance[i] = 0;
+      ang_correct[i] = 0.f;
+    }
+    else
+    {
+      distance[i] = raw_dist >> 2;
+      float dist_float = (float)(distance[i]);
+      float paramter = 21.8f * ((155.3f - dist_float) / (155.3f * dist_float));
+      ang_correct[i] = atan(paramter);
+    }
+
+    if (i == 0)
+    {
+      //starting_angle =(((float)(fsa >> 1)) / 64.f) + ang_correct[0];
+      starting_angle = ((float)(fsa >> 7)) + ang_correct[0];
+      i = lsn - 1; // Get the last one next
+      if (starting_angle >= 270.f || starting_angle <= 90.f)
+      {
+        angle_filtered[f_size] = (int)(starting_angle * 100.f);
+        dist_filtered[f_size] = distance[0];
+        ++f_size;
+      }
+    }
+    else if (i == lsn - 1)
+    {
+      //ending_angle = (((float)(lsa >> 1)) / 64.f) + ang_correct[lsn-1];
+      ending_angle = ((float)(lsa >> 7)) + ang_correct[lsn-1];
+      diff_angle = ending_angle - starting_angle;
+      i = 1;
+    }
+    else
+    {
+      mid_angle = ((diff_angle / ((float)(lsn-1))) * (float)(i-1)) + starting_angle + ang_correct[i];
+      if (mid_angle >= 270.f || mid_angle <= 90.f)
+      {
+        angle_filtered[f_size] = (int)(mid_angle * 100.0f);
+        dist_filtered[f_size] = distance[i];
+        ++f_size;
+      }
+
+      ++i;
+      if (i == lsn - 1) // Loop terminates
+      {
+        if (ending_angle >= 270.f || ending_angle <= 90.f)
+        {
+          angle_filtered[f_size] = (int)(ending_angle * 100.f);
+          dist_filtered[f_size] = distance[lsn-1];
+          ++f_size;
+        }
+        break;
+      }
+    }
+  }
+  //buffer[0] = f_size;
+  //lidar_push_filtered_to_buffer(angle_filtered, dist_filtered, buffer);
+
+
+  char buffer[167] = {0};
+  buffer[0] = f_size;
+  for (i = 1; i < f_size; ++i)
+  {
+    buffer[i] = angle_filtered[f_size] >> 8;
+    buffer[i+1] = (angle_filtered[f_size] & 0x00FF);
+
+    buffer[f_size + i] = dist_filtered[f_size] >> 8;
+    buffer[f_size + i + 1] = (dist_filtered[f_size] | 0x00FF);
+  }
+
+
+
+}
+
+int lidar_get_packet(char *buffer)
+{
+  int i, j;
+  char raw[MAX_LIDAR_PACKET_SIZE] = { 0 };
+
+  for (i = 0; i < 10; ++i)
+  {
+    raw[i] = UART1_InChar();
+  }
+
+  if (raw[0] == 0xAA && // Valid PH:LL
+      raw[1] == 0x55 && // Valid PH:HH
+      raw[2] == 0x00)   // Only if point cloud packet
+  {
+    int sample_quantity = raw[3];
+
+    for(j = 0; j < (sample_quantity*2); ++i, ++j)
+    {
+      raw[i] = UART1_InChar();
+    }
+
+    lidar_calculate_angle_distance(raw, buffer);
+    return 1;
+  }
+  else
+  {
+    return 0;
+  }
+
+
+
 }
 
 void restart_lidar()
@@ -215,9 +271,13 @@ void restart_lidar()
 }
 void stop_lidar()
 {
-	// stop command [A5 65]
+	// stop command [0xA5 0x65]
 	UART1_OutChar(0xA5);
 	UART1_OutChar(0x65);
+
+	// There will be no response for this command
+	// Wait for a bit
+  SysTick_Wait1us(10);
 }
 
 // PC4 -> M_SCTP(lidar)

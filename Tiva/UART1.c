@@ -3,7 +3,6 @@
 // ports PA0-1 are used for boot loader, not accessable ports
 #include <stdint.h>
 #include "UART1.h"
-#include "preprocessor.h"
 #include "tm4c123gh6pm.h"
 
 
@@ -119,12 +118,7 @@ void UART1_OutChar(char data){
 
 void UART1_Handler(void)
 {
-  // while(1) UART_OutChar('f');
-  UART1_ICR_R |= UART_ICR_RXIC; // Acknowledge  
-  while((UART1_FR_R&UART_FR_RXFE) != 0);
-  int preprocess = ((int)(UART1_DR_R&0xFF));
-	// SSI out to RPi
-	PP_Get(preprocess);
+
 }
 
 void UART1_enableInterrupts(void)

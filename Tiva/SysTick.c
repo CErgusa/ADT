@@ -36,7 +36,6 @@
 
 #include <stdint.h>
 #include "tm4c123gh6pm.h"
-#include "UART1.h"
 #include "SysTick (2).h"
 
 #define NVIC_ST_CTRL_COUNT      0x00010000  // Count flag6
@@ -45,13 +44,55 @@
 #define NVIC_ST_CTRL_ENABLE     0x00000001  // Counter mode
 #define NVIC_ST_RELOAD_M        0x00FFFFFF  // Counter load value
 
+void SysTick_80Mhz(void)
+{
+  // 1. Using RCC2
+  SYSCTL_RCC2_R |= SYSCTL_RCC2_USERCC2;
+
+  // 2. Bypass PLL while initializing
+  SYSCTL_RCC2_R |= SYSCTL_RCC2_BYPASS2;
+
+  // 3. Write 0x15 on bit[10:6]
+  // clear XTAL bit field first
+  SYSCTL_RCC2_R &= ~SYSCTL_RCC_XTAL_M;
+  // 16Mhz XTAL
+  SYSCTL_RCC2_R |= SYSCTL_RCC_XTAL_16MHZ;
+
+  // 4. Disable OSC source2 -> Select main osc
+  // Clear bit[6:4]
+  SYSCTL_RCC2_R &= ~SYSCTL_RCC2_OSCSRC2_M;
+
+  // 5. Clearing PWRDN to active PLL
+  SYSCTL_RCC2_R &= ~SYSCTL_RCC2_PWRDN2;
+
+  // 6. Set system clock
+  // Use DIV400 Select 400MHz(from PLL)
+  SYSCTL_RCC2_R |= SYSCTL_RCC2_DIV400;
+
+  // 7. Write divisor (value-1) in RCC2[28:22]
+  // 400Mhz / (4+1) = 80Mhz
+  // Clear bits[28:22] first
+  SYSCTL_RCC2_R &= ~(0x1FC00000);
+  // Write 0x04 in bits[28:22]
+  SYSCTL_RCC2_R |= (0x04 << 22);
+
+  // 8. Wait for PLL to lock by polling PLLLRIS
+  while( (SYSCTL_RIS_R & SYSCTL_RIS_PLLLRIS) == 0) {};
+
+  // 9. Set BYPASS to 0, select PLL as the source of system clock
+  SYSCTL_RCC2_R &= ~SYSCTL_RCC2_BYPASS2;
+}
+
 // Initialize SysTick with busy wait running at bus clock.
 void SysTick_Init(void){
   NVIC_ST_CTRL_R = 0;                   // disable SysTick during setup
   NVIC_ST_RELOAD_R = NVIC_ST_RELOAD_M;  // maximum reload value
   NVIC_ST_CURRENT_R = 0;                // any write to current clears it
-                                        // enable SysTick with core clock
+
+  // enable SysTick with core clock
   NVIC_ST_CTRL_R = NVIC_ST_CTRL_ENABLE+NVIC_ST_CTRL_CLK_SRC;
+
+  SysTick_80Mhz();
 }
 // Time delay using busy wait.
 // The delay parameter is in units of the core clock. (units of 12.5 nsec for 80 MHz clock)

@@ -10,13 +10,13 @@ void Lidar_Init(void);
 /* SCAN */
 struct scan_node;
 
-int scan_lidar(void);
+void lidar_scan_command(void);
+
+int lidar_scan_response(void);
 
 void get_packet_header(struct scan_node * PacketHeader);
 
-void get_packet(int * buf, struct scan_node * PacketHeader);
-
-void reset_lidar_shit(int * buffer, struct scan_node * PacketHeader);
+int lidar_get_packet(char * buffer);
 
 /********/
 
@@ -49,7 +49,7 @@ void device_status(void);
 #define SCAN_RESPONSE_HEADER 0xA5
 #define SCAN_HEADER_SIZE 0x07
 #define PACKET_FIRST_BYTE 0xA5
-#define MAX_PACKET_SIZE 0x80
+#define MAX_LIDAR_PACKET_SIZE 90 // 10 + 80
 #define ZERO_PACKET 0x00
 #define CLOUD_PACKET 0x01
 #define SERIAL_NUM_SIZE 16
@@ -68,10 +68,12 @@ void device_status(void);
 #define PACKET_HEADER_SECOND 0x55
 
 struct scan_node{
-    int packet_type;
-    int sample_quantity;
+    int packet_header;
+    char packet_type;
+    char sample_quantity;
     int start_angle;
     int ending_angle;
+    int check_code;
 };
 
 struct device_info{
@@ -86,11 +88,4 @@ struct device_health{
     uint16_t  error_code;
 };
 
-void logger(int * lidar)
-{
-	int i;
-	for(i = 0; i < MAX_PACKET_SIZE; ++i)
-	{
-		UART_OutChar(lidar[i]);
-	}
-}
+void logger(int * lidar);
