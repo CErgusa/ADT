@@ -14,16 +14,17 @@ def car_update(car_array):
         # check if in intersection but not entering
         if car_array[i].check_if_intersection(car_array[i].point.x, car_array[i].point.y):
             # continue moving
-            car_array[i].intersection_move_point()
+            car_array[i].intersection_move_point() # TODO: Create function
 
         # check if entering an intersection
         elif car_array[i].check_next():
             car_array[i].pull_next() # sets the intersectionID (TODO: FoW)
             car_array[i].which_way_to_turn() # sets the path according to intID -^
-            car_array[i].int_array, car_array[i].direction_stack = car_array[i].turn() # turns based on path-^
+            car_array[i].turn() # turns based on path-^
             # TODO: check for collisions (IM or nah???)
 
             # figure out how to move based on intersection array
+            # TODO: Use the stack to find the first step info
             car_array[i].entering_intersection_move_point()
 
         # check if leaving an intersection

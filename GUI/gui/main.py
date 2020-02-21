@@ -49,15 +49,17 @@ root.mainloop()  # idk, some function needed for tkinter
 #
 # - allowed scalability for cars (not hard coded anymore!!!!)
 #
-# - before turn(), find the path brute force until FoW   
+# - before turn(), find the path brute force until FoW
+# 
+# - intersection stack for dir, speed, and step count, updated when turning
+# 
+# - put everything into a city class for reducing complexity of main
+#   allows for multiple cars
 
 
 # TODO List:
 # - take out len( array ) by adding length in car class
 #   saves lots of time from scanning the list over and over again
-#
-# - put everything into a city class for reducing complexity of main
-#   allows for multiple cars
 #
 # - random locations for car spawning (will be required for the above task)
 #
@@ -67,3 +69,5 @@ root.mainloop()  # idk, some function needed for tkinter
 # - fix bug with printing indexes on update
 #
 # - collision detection
+# 
+# - when exiting the intersection, updates the car to correct info
