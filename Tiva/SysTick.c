@@ -47,41 +47,41 @@
 
 void SysTick_80Mhz(void)
 {
-  // 1. Using RCC2
-  SYSCTL_RCC2_R |= SYSCTL_RCC2_USERCC2;
-
-  // 2. Bypass PLL while initializing
-  SYSCTL_RCC2_R |= SYSCTL_RCC2_BYPASS2;
-
-  // 3. Write 0x15 on bit[10:6]
-  // clear XTAL bit field first
-  SYSCTL_RCC2_R &= ~SYSCTL_RCC_XTAL_M;
-  // 16Mhz XTAL
-  SYSCTL_RCC2_R |= SYSCTL_RCC_XTAL_16MHZ;
-
-  // 4. Disable OSC source2 -> Select main osc
-  // Clear bit[6:4]
-  SYSCTL_RCC2_R &= ~SYSCTL_RCC2_OSCSRC2_M;
-
-  // 5. Clearing PWRDN to active PLL
-  SYSCTL_RCC2_R &= ~SYSCTL_RCC2_PWRDN2;
-
-  // 6. Set system clock
-  // Use DIV400 Select 400MHz(from PLL)
-  SYSCTL_RCC2_R |= SYSCTL_RCC2_DIV400;
-
-  // 7. Write divisor (value-1) in RCC2[28:22]
-  // 400Mhz / (4+1) = 80Mhz
-  // Clear bits[28:22] first
-  SYSCTL_RCC2_R &= ~(0x1FC00000);
-  // Write 0x04 in bits[28:22]
-  SYSCTL_RCC2_R |= (0x04 << 22);
-
-  // 8. Wait for PLL to lock by polling PLLLRIS
-  while( (SYSCTL_RIS_R & SYSCTL_RIS_PLLLRIS) == 0) {};
-
-  // 9. Set BYPASS to 0, select PLL as the source of system clock
-  SYSCTL_RCC2_R &= ~SYSCTL_RCC2_BYPASS2;
+//  // 1. Using RCC2
+//  SYSCTL_RCC2_R |= SYSCTL_RCC2_USERCC2;
+//
+//  // 2. Bypass PLL while initializing
+//  SYSCTL_RCC2_R |= SYSCTL_RCC2_BYPASS2;
+//
+//  // 3. Write 0x15 on bit[10:6]
+//  // clear XTAL bit field first
+//  SYSCTL_RCC2_R &= ~SYSCTL_RCC_XTAL_M;
+//  // 16Mhz XTAL
+//  SYSCTL_RCC2_R |= SYSCTL_RCC_XTAL_16MHZ;
+//
+//  // 4. Disable OSC source2 -> Select main osc
+//  // Clear bit[6:4]
+//  SYSCTL_RCC2_R &= ~SYSCTL_RCC2_OSCSRC2_M;
+//
+//  // 5. Clearing PWRDN to active PLL
+//  SYSCTL_RCC2_R &= ~SYSCTL_RCC2_PWRDN2;
+//
+//  // 6. Set system clock
+//  // Use DIV400 Select 400MHz(from PLL)
+//  SYSCTL_RCC2_R |= SYSCTL_RCC2_DIV400;
+//
+//  // 7. Write divisor (value-1) in RCC2[28:22]
+//  // 400Mhz / (4+1) = 80Mhz
+//  // Clear bits[28:22] first
+//  SYSCTL_RCC2_R &= ~(0x1FC00000);
+//  // Write 0x04 in bits[28:22]
+//  SYSCTL_RCC2_R |= (0x04 << 22);
+//
+//  // 8. Wait for PLL to lock by polling PLLLRIS
+//  while( (SYSCTL_RIS_R & SYSCTL_RIS_PLLLRIS) == 0) {};
+//
+//  // 9. Set BYPASS to 0, select PLL as the source of system clock
+//  SYSCTL_RCC2_R &= ~SYSCTL_RCC2_BYPASS2;
 }
 
 // Initialize SysTick with busy wait running at bus clock.
