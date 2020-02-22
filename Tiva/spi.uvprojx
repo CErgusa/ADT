@@ -413,11 +413,6 @@
               <FilePath>.\SysTick.c</FilePath>
             </File>
             <File>
-              <FileName>startup.s</FileName>
-              <FileType>2</FileType>
-              <FilePath>.\startup.s</FilePath>
-            </File>
-            <File>
               <FileName>Lidar.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Lidar.c</FilePath>
@@ -463,16 +458,6 @@
               <FilePath>.\v8stdint.h</FilePath>
             </File>
             <File>
-              <FileName>preprocessor.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\preprocessor.c</FilePath>
-            </File>
-            <File>
-              <FileName>preprocessor.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\preprocessor.h</FilePath>
-            </File>
-            <File>
               <FileName>system.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\system.c</FilePath>
@@ -481,6 +466,21 @@
               <FileName>system.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\system.h</FilePath>
+            </File>
+            <File>
+              <FileName>startup.s</FileName>
+              <FileType>2</FileType>
+              <FilePath>.\startup.s</FilePath>
+            </File>
+            <File>
+              <FileName>FPU.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\FPU.c</FilePath>
+            </File>
+            <File>
+              <FileName>FPU.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\FPU.h</FilePath>
             </File>
           </Files>
         </Group>

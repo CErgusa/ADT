@@ -8,6 +8,18 @@
 #include "GDL.h"
 #include "FPU.h"
 
+
+void clock_check(void)
+{
+  int i = 1;
+  while(1)
+  {
+    SysTick_Wait1us(1);
+    GDL_Send(i);
+    i = ~i;
+  }
+}
+
 void system_IR_cell_add_packet(char *buffer)
 {
   // Send IR, Cell data
@@ -20,9 +32,11 @@ void system_IR_cell_add_packet(char *buffer)
   buffer[MAX_PACKET_SIZE+5] = 66;//ADC_Get(0, CELL3_CHANNEL) >> 4;
 }
 
+
 void system_init(void)
 {
 	SysTick_Init(); // System timer
+  clock_check();
   FPU_Init();     // Enable Floating Point Unit
   SSI_Init();     // SPI communication
   UART_Init();    // TeraTerm UART communication
