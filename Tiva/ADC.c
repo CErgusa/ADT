@@ -1,5 +1,5 @@
-#include "adc.h"
-#include "UART1.h"
+#include "ADC.h"
+#include "tm4c123gh6pm.h"
 
 // We will use 5 pins of Port D
 // Cell3 -> PD0(AIN7) -> ADC0
@@ -15,8 +15,6 @@ void PortD_Init(void)
  
 	while((SYSCTL_PRGPIO_R&SYSCTL_PRGPIO_R3) == 0){};
 	
-  UART_OutChar('1');
-
   // Set input/output
   // input: clear [3:0]
   // output: set [6]
@@ -74,7 +72,6 @@ void PortE_Init(void)
 {
 	SYSCTL_RCGCGPIO_R |= 0x10; // 1) activate clock for Port E
   while((SYSCTL_PRGPIO_R&0x10) == 0){};
-	UART_OutChar('1');
 
 	GPIO_PORTE_DIR_R &= ~0x06;  // 2) make input
 	
@@ -96,8 +93,6 @@ void ADC0_Init(void)
   // Add a small delay to allow the ADC to activate
   while((SYSCTL_PRADC_R&SYSCTL_PRADC_R0) == 0){};
   
-  UART_OutChar('2');
-  
   PortD_Init();
 
   ADC0_PC_R = 0x01;         // 7) configure for 125K
@@ -115,8 +110,6 @@ void ADC0_Init(void)
   ADC0_IM_R &= ~0x0008;     // 13) disable SS3 interrupts
 	
   ADC0_ACTSS_R |= 0x0008;   // 14) enable sample sequencer 3
-	
-  UART_OutChar('3');
 }
 
 // ADC1 for reading the IR sensor value
@@ -129,8 +122,6 @@ void ADC1_Init(void)
   
   // Add a small delay to allow the ADC to activate
   while((SYSCTL_PRADC_R&SYSCTL_PRADC_R1) == 0){};
-  
-  UART_OutChar('2');
   
   PortE_Init();
 
@@ -147,8 +138,6 @@ void ADC1_Init(void)
   ADC1_IM_R &= ~0x0008;     // 13) disable SS3 interrupts
 	
   ADC1_ACTSS_R |= 0x0008;   // 14) enable sample sequencer 3
-	
-  UART_OutChar('3');
 }
 
 // Cell3 -> PD0(AIN7) -> ADC0

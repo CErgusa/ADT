@@ -36,17 +36,11 @@
 
 #include <stdint.h>
 #include "tm4c123gh6pm.h"
-#include "UART1.h"
-#include "SysTick (2).h"
-
-#define NVIC_ST_CTRL_COUNT      0x00010000  // Count flag6
-#define NVIC_ST_CTRL_CLK_SRC    0x00000004  // Clock Source
-#define NVIC_ST_CTRL_INTEN      0x00000002  // Interrupt enable
-#define NVIC_ST_CTRL_ENABLE     0x00000001  // Counter mode
-#define NVIC_ST_RELOAD_M        0x00FFFFFF  // Counter load value
+#include "systick.h"
 
 // Initialize SysTick with busy wait running at bus clock.
-void SysTick_Init(void){
+void systick_init(void)
+{
   NVIC_ST_CTRL_R = 0;                   // disable SysTick during setup
   NVIC_ST_RELOAD_R = NVIC_ST_RELOAD_M;  // maximum reload value
   NVIC_ST_CURRENT_R = 0;                // any write to current clears it
@@ -55,7 +49,8 @@ void SysTick_Init(void){
 }
 // Time delay using busy wait.
 // The delay parameter is in units of the core clock. (units of 12.5 nsec for 80 MHz clock)
-void SysTick_Wait(uint32_t delay){
+void systick_wait(int delay)
+{
   volatile uint32_t elapsedTime;
   uint32_t startTime = NVIC_ST_CURRENT_R;
   do{
@@ -65,9 +60,27 @@ void SysTick_Wait(uint32_t delay){
 }
 // Time delay using busy wait.
 // This assumes 80 MHz system clock.
-void SysTick_Wait1us(uint32_t delay){
+void systick_wait_us(int delay)
+{
   uint32_t i;
   for(i=0; i<delay; i++){
-    SysTick_Wait(80);  // wait 1us (assumes 80 MHz clock)
+    systick_wait(80);  // wait 1us (assumes 80 MHz clock)
   }
 }
+
+void systick_wait_ms(int delay)
+{
+  uint32_t i;
+  for(i=0; i<delay; i++){
+    systick_wait_us(1000);  // wait 1ms (assumes 80 MHz clock)
+  }
+}
+
+void systick_wait_sec(int delay)
+{
+  uint32_t i;
+  for(i=0; i<delay; i++){
+    systick_wait_ms(1000);  // wait 1s (assumes 80 MHz clock)
+  }
+}
+

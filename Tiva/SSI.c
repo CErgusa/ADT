@@ -1,7 +1,6 @@
 #include "SSI.h"
-#include "adc.h"
-#define SSI0_CE_ON 0x0
-#define SSI0_CE_OFF 0x1
+#include <stdint.h>
+#include "tm4c123gh6pm.h"
 
 // SSI0
 // Tiva        Rpi
@@ -49,65 +48,3 @@ unsigned char SSI_Read(unsigned char data)
 	while((SSI0_SR_R&SSI_SR_RNE)==0){};    // wait until response Receiving FIFO is Full
 	return (unsigned char) SSI0_DR_R;      // read received data
 }
-
-
-void SSI_in(void)
-{
-  // Trigger Interrupt
-  // GDL_Send(1); // Test GPIO interrupt
-  int i = 0;
-  for (; i < 134; ++i)
-  {
-    SSI_send_byte(i);
-  }
-  //GDL_Send(0);
-
-  while (1) { }
-
-/*
-  uint32_t IR_Raw[3];
-  uint32_t CELL_Raw[3];
-  
-  unsigned char IR_CELL_MSB[6];
-
-  while(1) 
-	{
-		IR_Raw[0] = ADC_Get(1, IR1_CHANNEL);
-		IR_Raw[1] = ADC_Get(1, IR2_CHANNEL);
-		IR_Raw[2] = ADC_Get(1, IR3_CHANNEL);
-		
-		CELL_Raw[0] = ADC_Get(0, CELL1_CHANNEL);
-		CELL_Raw[1] = ADC_Get(0, CELL2_CHANNEL);
-		CELL_Raw[2] = ADC_Get(0, CELL3_CHANNEL); 
-		
-		// Only MSB 8bits
-		IR_CELL_MSB[0] = IR_Raw[0] >> 4;
-		IR_CELL_MSB[1] = IR_Raw[1] >> 4;
-		IR_CELL_MSB[2] = IR_Raw[2] >> 4;
-  }
-  
-  IR_CELL_MSB[3] = CELL_Raw[0] >> 4;
-  IR_CELL_MSB[4] = CELL_Raw[1] >> 4;
-  IR_CELL_MSB[5] = CELL_Raw[2] >> 4;
-  
-  int SSI_CE_PA3 = (GPIO_PORTA_DATA_R & 0x08);
-  int count = 0;
-  if (SSI_CE_PA3 == SSI0_CE_ON)
-  {
-    // Send IR1 data first
-    SSI_send_byte(IR_CELL_MSB[count++]);
-    while(count < 6) // Not done until IR2, IR3, CELL1, CELL2, CELL3 send data
-    {
-      // Wait next tranfer from master
-      
-      // If transfer is initiated
-      if (SSI_CE_PA3 == SSI0_CE_ON)
-      {
-        SSI_send_byte(IR_CELL_MSB[count++]);
-      }
-      // Repeat until all IR sensor done
-    }
-  }
-*/
-}
-

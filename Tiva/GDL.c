@@ -1,5 +1,7 @@
 #include "GDL.h"
+#include <stdint.h> // uint_32
 #include "tm4c123gh6pm.h"
+
 
 // Using Ports
 // Port A: UART0(PA1-0), SSI0(PA5-2)
@@ -16,7 +18,6 @@
 // PC6 -> GDL2
 // PC7 -> GDL3
 // PD6 -> GDL4
-
 
 
 // PC4 -> GDL0
@@ -65,7 +66,7 @@ void PortC_Init(void)
 }
 
 
-void GDL_Init(void)
+void GDL_init(void)
 {
   PortC_Init();
 }
@@ -76,7 +77,7 @@ void GDL_Init(void)
 // PC6 -> GDL2 -> BCM5
 // PC7 -> GDL3 -> BCM0
 // PD6 -> GDL4 -> BCM22
-void GDL_Send(unsigned char data_max5bits)
+void GDL_send(unsigned char data_max5bits)
 {
   // Parse given data
   unsigned char GDL[5];
