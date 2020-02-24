@@ -17,7 +17,7 @@ class Random():
         farts = random.randint(self.min, self.max)
 
         if farts == num_to_skip:
-            self.skip_randint_aux(num_to_skip)
+            return self.skip_randint_aux(num_to_skip)
         else:
             return farts
 
@@ -26,7 +26,7 @@ class Random():
 
         if farts == skip:
             print("This program is all fucked up, fix it dipshit")
-            self.skip_randint_aux(skip)
+            return self.skip_randint_aux(skip)
         else:
             return farts
 
@@ -36,7 +36,7 @@ class Random():
         farts = random.randint(self.min, self.max)
 
         if farts == num_to_skip or farts == num_to_skip2:
-            self.skip_randint_aux(num_to_skip, num_to_skip2)
+            return self.skip_randint_aux(num_to_skip, num_to_skip2)
         else:
             return farts
 
@@ -45,6 +45,6 @@ class Random():
 
         if farts == num_to_skip or farts == num_to_skip2:
             print("This program might be wrong, but has high prob. of getting here")
-            self.skip2_randint_aux(num_to_skip, num_to_skip2)
+            return self.skip2_randint_aux(num_to_skip, num_to_skip2)
         else:
             return farts

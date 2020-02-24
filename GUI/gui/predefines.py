@@ -1,11 +1,22 @@
 GRID_SIZE = 10
 INTERSECTION_SIZE = 3
 
+idk = -10000
 NONE = -1
 UP = 0
 DOWN = 1
 LEFT = 2
 RIGHT = 3
+EDGE = 4
+EDGY = 5
+
+NORTH = 0
+EAST = 1
+WEST = 2
+SOUTH = 3
+
+dir_array = ['UP', 'DOWN', 'LEFT', 'RIGHT']
+
 
 EMPTY = 0
 INTERSECTION1 = 1

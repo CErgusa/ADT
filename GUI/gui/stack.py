@@ -12,9 +12,15 @@ class Stack:
          return self.container.pop()
 
      def top(self):
-         return self.container[len(self.container) - 1]
+         if not self.empty():
+            return self.container[len(self.container) - 1]
+         else:
+            return None
 
      def size(self):
          return len(self.container)
 
-
+     def clear(self):
+         for i in range(0, self.size()):
+             self.pop()
+         
