@@ -244,7 +244,7 @@ int lidar_get_packet(char *buffer)
 
 void restart_lidar()
 {
-		// restart command [A5 40]
+	// restart command [A5 40]
 	UART1_OutChar(0xA5);
 	UART1_OutChar(0x40);
 }
