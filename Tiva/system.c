@@ -7,33 +7,46 @@
 #include "ADC.h"
 #include "GDL.h"
 #include "lidar.h"
+#include <math.h> // test
 
 #define ERROR 0
 #define NO_ERROR 1
 #define MAX_PACKET_SIZE 167 // Size[1] + Angle[40*2] + Dist40*2] + IR[3] + Voltage[3]
+#define PI 3.1415f // test
 
 
 void clock_check_loop(void)
 {
-  int i = 1;
-  char j = '>';
-  float test1 = 1.2;
-  int test2 = (int)(test1 * 100.f);
-  while (1)
+  // float->atan->scale->int
+  float float_shit[4] = { 0.25f, 0.5f, 0.75f, 0.99f };
+  int int_shit[4] = { 0 };
+  int i;
+  for (i = 0; i <4; ++i)
   {
-    test1 *= 1.2f * i;
-    
-    if (test1 > 2.f)
-    {
-      UART0_OutChar('y');
-    }
-    
-    if (test1 > 4.f)
-    {
-      UART0_OutChar('5');
-    }
-    ++i;
+    float atan_shit = (atan(float_shit[i]));
+    float degree_shit = atan_shit * (180.f / PI);
+    float scale_shit = degree_shit*100.f;
+    int_shit[i] = (int)scale_shit; // {0x057B, 0x0A60, 0x0E66, 0x1177}
   }
+  
+  unsigned char buffer[8];
+  for (i = 0; i < 4; ++i)
+  {
+    int index = 2*i;
+    buffer[index] = int_shit[i] >> 8;
+    buffer[index+1] = int_shit[i] & (0x00FF);
+  }
+
+  // int->float->scale
+  int test = 1555;
+  float test1 = ((float)test)/100.f; // 15.55
+  float test2 = test1 + 0.5; // 16.01
+  float test3 = test2 * 100.f; // 1601.
+  int test4 = (int)test3; // 0x0641
+
+  unsigned char buffer0 = test4 >> 8;
+  UART0_OutChar(buffer0);
+  
 }
 
 
@@ -80,7 +93,9 @@ void system_IR_cell_add_packet(unsigned char *buffer)
 
 int system_engine(void)
 {
-  clock_check_loop();
+
+  float_debugging(0.0f);
+  //clock_check_loop();
   lidar_stop_command();
   // get buffer for sample array
   lidar_scan_response();

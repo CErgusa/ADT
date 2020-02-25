@@ -14,6 +14,7 @@
 #define SCAN_BYTE6 0x81
 
 #define MAX_LIDAR_SAMPLES 0x28
+#define PI 3.1415f
 
 // PB0: UART1 Rx <- Lidar Tx
 // PB1: UART1 Tx -> Lidar Rx
@@ -65,6 +66,37 @@ void PortF_Init(void)
   // Enable digital function
   // set [4:2]
 	GPIO_PORTF_DEN_R |= 0x1C;
+}
+
+void float_debugging(float target)
+{
+  float scaled = target * 100.f;
+  int int_target = (int)scaled;
+  
+  unsigned char buffer;
+  int i;
+  
+  UART0_OutChar('0');
+  UART0_OutChar('x');
+
+  for (i = 0; i < 4; ++i)
+  {
+    buffer = (int_target & (0xF << (4*(3-i)))) >> (4*(3-i));
+    if ((0 <= buffer) && (buffer <= 9))
+    {
+      UART0_OutChar(buffer+'0');
+    }
+    else
+    {
+      UART0_OutChar(buffer+55);
+    }
+  }
+  UART0_OutChar(' ');
+}
+
+float degree(float rad)
+{
+  return rad * (180.f / PI);
 }
 
 
@@ -137,7 +169,7 @@ void lidar_push_filtered_to_buffer(int *angle_filtered, int *dist_filtered, unsi
 
 void lidar_calculate_angle_distance(unsigned char *raw, unsigned char *buffer)
 {
-  unsigned char lsn = raw[3]; // ~0x28
+  unsigned char lsn = raw[3]; // 0 ~0x28
   int fsa = (raw[4] | (raw[5] << 8));
   int lsa = (raw[6] | (raw[7] << 8));
 
@@ -156,7 +188,8 @@ void lidar_calculate_angle_distance(unsigned char *raw, unsigned char *buffer)
 
   for (i = 0; i < lsn;)
   {
-    int i_th_sample = (2 * i) + 10; // (10,11), (12,13), (14,15)....
+    // (10,11), (12,13), (14,15) .... (88,89)
+    int i_th_sample = (2 * i) + 10;
     int raw_dist = (raw[i_th_sample] | (raw[i_th_sample+1] << 8));
     if (raw_dist == 0)
     {
@@ -167,14 +200,14 @@ void lidar_calculate_angle_distance(unsigned char *raw, unsigned char *buffer)
     {
       distance[i] = raw_dist >> 2; // Distance = raw / 4
       float dist_float = (float)(distance[i]);
-      float paramter = 21.8f * ((155.3f - dist_float) / (155.3f * dist_float));
-      ang_correct[i] = atan(paramter);
+      float parameter = 21.8f * ((155.3f - dist_float) / (155.3f * dist_float));
+      ang_correct[i] = degree(atan(parameter));
     }
 
     if (i == 0) // First sample: Starting angle, distance
     {
-      //starting_angle =(((float)(fsa >> 1)) / 64.f) + ang_correct[0];
-      starting_angle = ((float)(fsa >> 7)) + ang_correct[0];
+      starting_angle =(((float)(fsa >> 1)) / 64.f) + ang_correct[0];
+      float_debugging(starting_angle);
       i = lsn - 1; // Get the last one next
       if (starting_angle >= 270.f || starting_angle <= 90.f)
       {
@@ -185,9 +218,10 @@ void lidar_calculate_angle_distance(unsigned char *raw, unsigned char *buffer)
     }
     else if (i == lsn - 1) // Last sample: Ending angle, distance
     {
-      //ending_angle = (((float)(lsa >> 1)) / 64.f) + ang_correct[lsn-1];
-      ending_angle = ((float)(lsa >> 7)) + ang_correct[lsn-1];
+      ending_angle = (((float)(lsa >> 1)) / 64.f) + ang_correct[lsn-1];
       diff_angle = ending_angle - starting_angle;
+      float_debugging(ending_angle);
+      float_debugging(diff_angle);
       
       i = 1; // Now get middle samples
     }
@@ -214,7 +248,7 @@ void lidar_calculate_angle_distance(unsigned char *raw, unsigned char *buffer)
       else
       {
         ++i;
-      } 
+      }
     }
   }
 
