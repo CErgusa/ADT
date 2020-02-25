@@ -39,35 +39,29 @@ root.mainloop()  # idk, some function needed for tkinter
 
 
 # DONE List:
-# - put everything into classes for simplicity
+# - when exiting the intersection, updates the car to correct info
 #
-# - updated car constructor for path, intersectionID (still needs FoW)
+# - fix bug where inner corner sends you back the other way
 #
-# - created a random number generator API for turn()
+# - make a function that changes dir correctly when leaving an intersection
 #
-# - on spawn of car, will now autofix direction if incorrect on corners
+# - Use the stack to find the first step info
 #
-# - allowed scalability for cars (not hard coded anymore!!!!)
+# - fix flying car bug
 #
-# - before turn(), find the path brute force until FoW
-# 
-# - intersection stack for dir, speed, and step count, updated when turning
-# 
-# - put everything into a city class for reducing complexity of main
-#   allows for multiple cars
+# - fix check_if_intersection to allow for touching building
+#
+# - edge collision detection
 
 
 # TODO List:
-# - take out len( array ) by adding length in car class
-#   saves lots of time from scanning the list over and over again
-#
-# - random locations for car spawning (will be required for the above task)
-#
 # - turn intersectionID into an array for fog of war
 #   this way it isn't a shitty update to a variable that literally does nothing
 #
-# - fix bug with printing indexes on update
-#
 # - collision detection
 # 
-# - when exiting the intersection, updates the car to correct info
+# - edge detection for check_next
+# 
+# - fix mystery (None) path bug
+#
+# - corners not working?

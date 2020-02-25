@@ -9,34 +9,65 @@ from rand import Random
 
 def car_update(car_array):
     for i in range(0, len(car_array)):
-        #print('ID:', car_array[i].ID, 'direction:', car_array[i].direction, 'path:', car_array[i].path, 'point:', car_array[i].point.x, ',', car_array[i].point.y)
+        print('ID:', car_array[i].ID, 'direction:', predefines.dir_array[car_array[i].direction], 'path:', predefines.dir_array[car_array[i].path], 'intID:', car_array[i].intersectionID, 'stack_length:', car_array[i].direction_stack.size())
+        check_next, edge_case, if_intersection = car_array[i].check_next_if()
+        fuck_up = car_array[i].uturn_fuck_up(if_intersection)
 
-        # check if in intersection but not entering
-        if car_array[i].check_if_intersection(car_array[i].point.x, car_array[i].point.y):
-            # continue moving
-            car_array[i].intersection_move_point() # TODO: Create function
+        if check_next == predefines.NONE:
+            # believe in itself
+            car_array[i].intersection_move_point()
+            if_intersection = car_array[i].check_if_intersection(car_array[i].point.x, car_array[i].point.y)
+            if if_intersection != True:
+                intersection = car_array[i].direction_stack.top() # update the direction
+                car_array[i].direction = intersection.direction # update the direction
+                car_array[i].direction_stack.pop();
+                car_array[i].int_step_counter = 0
+
+                car_array[i].intersectionID = predefines.NONE # update the intersectionID
+            
+            continue
+        
+        god_damn_it = car_array[i].check_if_in_and_out(check_next, if_intersection)
 
         # check if entering an intersection
-        elif car_array[i].check_next():
+        if (check_next and car_array[i].int_step_counter == 0 and car_array[i].direction_stack.empty()) or god_damn_it or (god_damn_it and edge_case) or (fuck_up == predefines.EDGY and god_damn_it):
+            if god_damn_it and edge_case:
+                intersection = car_array[i].direction_stack.top() # update the direction
+                car_array[i].direction = intersection.direction # update the direction
+                car_array[i].direction_stack.pop();
+                car_array[i].int_step_counter = 0
+
             car_array[i].pull_next() # sets the intersectionID (TODO: FoW)
+
             car_array[i].which_way_to_turn() # sets the path according to intID -^
+
             car_array[i].turn() # turns based on path-^
             # TODO: check for collisions (IM or nah???)
 
-            # figure out how to move based on intersection array
-            # TODO: Use the stack to find the first step info
-            car_array[i].entering_intersection_move_point()
+            # figure out how to move based on direction stack
+            car_array[i].intersection_move_point()
+
+        # check if in intersection but not entering
+        elif (check_next and if_intersection) or check_next == predefines.NONE:
+            # continue moving
+            car_array[i].intersection_move_point()
 
         # check if leaving an intersection
-        elif car_array[i].check_next() == False and car_array[i].check_if_intersection(car_array[i].point.x, car_array[i].point.y): 
-            car_array[i].direction = car_array[i].path; # update the direction (TOTALLY WRONG???)
-            # TODO: make a function that changes it properly (looks at both and decides what the dir actually is
-            #       should make the path NONE or something arbitrary
+        elif (check_next == False and if_intersection) or (not god_damn_it and edge_case): 
+            intersection = car_array[i].direction_stack.top() # update the direction
+            car_array[i].check_if_in_and_out(check_next, if_intersection)
+            car_array[i].direction = intersection.direction # update the direction
+            car_array[i].direction_stack.pop();
+
+            if not car_array[i].direction_stack.empty():
+                car_array[i].direction_stack.clear()
+
+            car_array[i].int_step_counter = 0
 
             car_array[i].intersectionID = predefines.NONE # update the intersectionID
-            car_array[i].move_point()
+            car_array[i].direction_move_point()
         else:
-            car_array[i].move_point()
+            car_array[i].direction_move_point()
 
     return car_array
 
@@ -91,119 +122,119 @@ class GUI(Frame):
     def update_tk(self):
         # the true init function, it creates the original board
         # Label ( tkinter window name, what text you want in the block, block color ). grid ( x value, y value )
-        Label(self.window, text='              ', bg='khaki').grid(row=0, column=0)
-        Label(self.window, text='              ', bg='khaki').grid(row=0, column=1)
-        Label(self.window, text='              ', bg='khaki').grid(row=0, column=2)
-        Label(self.window, text='              ', bg='khaki').grid(row=1, column=0)
-        Label(self.window, text='              ', bg='khaki').grid(row=1, column=1)
-        Label(self.window, text='              ', bg='khaki').grid(row=1, column=2)
-        Label(self.window, text='              ', bg='khaki').grid(row=2, column=0)
-        Label(self.window, text='              ', bg='khaki').grid(row=2, column=1)
+        Label(self.window, text='       0       ', bg='khaki').grid(row=0, column=0)
+        Label(self.window, text='       0       ', bg='khaki').grid(row=0, column=1)
+        Label(self.window, text='       0       ', bg='khaki').grid(row=0, column=2)
+        Label(self.window, text='       0       ', bg='khaki').grid(row=1, column=0)
+        Label(self.window, text='       0       ', bg='khaki').grid(row=1, column=1)
+        Label(self.window, text='       0       ', bg='khaki').grid(row=1, column=2)
+        Label(self.window, text='       0       ', bg='khaki').grid(row=2, column=0)
+        Label(self.window, text='       0       ', bg='khaki').grid(row=2, column=1)
 
-        Label(self.window, text='              ', bg='khaki').grid(row=7, column=0)
-        Label(self.window, text='              ', bg='khaki').grid(row=7, column=1)
-        Label(self.window, text='              ', bg='khaki').grid(row=7, column=2)
-        Label(self.window, text='              ', bg='khaki').grid(row=8, column=0)
-        Label(self.window, text='              ', bg='khaki').grid(row=8, column=1)
-        Label(self.window, text='              ', bg='khaki').grid(row=8, column=2)
-        Label(self.window, text='              ', bg='khaki').grid(row=9, column=0)
-        Label(self.window, text='              ', bg='khaki').grid(row=9, column=1)
-        Label(self.window, text='              ', bg='khaki').grid(row=9, column=2)
+        Label(self.window, text='       0       ', bg='khaki').grid(row=7, column=0)
+        Label(self.window, text='       0       ', bg='khaki').grid(row=7, column=1)
+        Label(self.window, text='       0       ', bg='khaki').grid(row=7, column=2)
+        Label(self.window, text='       0       ', bg='khaki').grid(row=8, column=0)
+        Label(self.window, text='       0       ', bg='khaki').grid(row=8, column=1)
+        Label(self.window, text='       0       ', bg='khaki').grid(row=8, column=2)
+        Label(self.window, text='       0       ', bg='khaki').grid(row=9, column=0)
+        Label(self.window, text='       0       ', bg='khaki').grid(row=9, column=1)
+        Label(self.window, text='       0       ', bg='khaki').grid(row=9, column=2)
 
-        Label(self.window, text='              ', bg='khaki').grid(row=7, column=8)
-        Label(self.window, text='              ', bg='khaki').grid(row=7, column=9)
-        Label(self.window, text='              ', bg='khaki').grid(row=8, column=7)
-        Label(self.window, text='              ', bg='khaki').grid(row=8, column=8)
-        Label(self.window, text='              ', bg='khaki').grid(row=8, column=9)
-        Label(self.window, text='              ', bg='khaki').grid(row=9, column=7)
-        Label(self.window, text='              ', bg='khaki').grid(row=9, column=8)
-        Label(self.window, text='              ', bg='khaki').grid(row=9, column=9)
+        Label(self.window, text='       0       ', bg='khaki').grid(row=7, column=8)
+        Label(self.window, text='       0       ', bg='khaki').grid(row=7, column=9)
+        Label(self.window, text='       0       ', bg='khaki').grid(row=8, column=7)
+        Label(self.window, text='       0       ', bg='khaki').grid(row=8, column=8)
+        Label(self.window, text='       0       ', bg='khaki').grid(row=8, column=9)
+        Label(self.window, text='       0       ', bg='khaki').grid(row=9, column=7)
+        Label(self.window, text='       0       ', bg='khaki').grid(row=9, column=8)
+        Label(self.window, text='       0       ', bg='khaki').grid(row=9, column=9)
 
-        Label(self.window, text='              ', bg='khaki').grid(row=2, column=8)
-        Label(self.window, text='              ', bg='khaki').grid(row=2, column=9)
-        Label(self.window, text='              ', bg='khaki').grid(row=1, column=7)
-        Label(self.window, text='              ', bg='khaki').grid(row=1, column=8)
-        Label(self.window, text='              ', bg='khaki').grid(row=1, column=9)
-        Label(self.window, text='              ', bg='khaki').grid(row=0, column=7)
-        Label(self.window, text='              ', bg='khaki').grid(row=0, column=8)
-        Label(self.window, text='              ', bg='khaki').grid(row=0, column=9)
+        Label(self.window, text='       0       ', bg='khaki').grid(row=2, column=8)
+        Label(self.window, text='       0       ', bg='khaki').grid(row=2, column=9)
+        Label(self.window, text='       0       ', bg='khaki').grid(row=1, column=7)
+        Label(self.window, text='       0       ', bg='khaki').grid(row=1, column=8)
+        Label(self.window, text='       0       ', bg='khaki').grid(row=1, column=9)
+        Label(self.window, text='       0       ', bg='khaki').grid(row=0, column=7)
+        Label(self.window, text='       0       ', bg='khaki').grid(row=0, column=8)
+        Label(self.window, text='       0       ', bg='khaki').grid(row=0, column=9)
 
-        Label(self.window, text='              ', bg='indian red').grid(row=2, column=2)
-        Label(self.window, text='              ', bg='indian red').grid(row=2, column=3)
-        Label(self.window, text='              ', bg='indian red').grid(row=3, column=2)
-        Label(self.window, text='              ', bg='indian red').grid(row=3, column=3)
+        Label(self.window, text='       8       ', bg='indian red').grid(row=2, column=2)
+        Label(self.window, text='       8       ', bg='indian red').grid(row=2, column=3)
+        Label(self.window, text='       8       ', bg='indian red').grid(row=3, column=2)
+        Label(self.window, text='       8       ', bg='indian red').grid(row=3, column=3)
 
-        Label(self.window, text='              ', bg='indian red').grid(row=2, column=6)
-        Label(self.window, text='              ', bg='indian red').grid(row=2, column=7)
-        Label(self.window, text='              ', bg='indian red').grid(row=3, column=6)
-        Label(self.window, text='              ', bg='indian red').grid(row=3, column=7)
+        Label(self.window, text='       8       ', bg='indian red').grid(row=2, column=6)
+        Label(self.window, text='       8       ', bg='indian red').grid(row=2, column=7)
+        Label(self.window, text='       8       ', bg='indian red').grid(row=3, column=6)
+        Label(self.window, text='       8       ', bg='indian red').grid(row=3, column=7)
 
-        Label(self.window, text='              ', bg='indian red').grid(row=6, column=2)
-        Label(self.window, text='              ', bg='indian red').grid(row=6, column=3)
-        Label(self.window, text='              ', bg='indian red').grid(row=7, column=2)
-        Label(self.window, text='              ', bg='indian red').grid(row=7, column=3)
+        Label(self.window, text='       8       ', bg='indian red').grid(row=6, column=2)
+        Label(self.window, text='       8       ', bg='indian red').grid(row=6, column=3)
+        Label(self.window, text='       8       ', bg='indian red').grid(row=7, column=2)
+        Label(self.window, text='       8       ', bg='indian red').grid(row=7, column=3)
 
-        Label(self.window, text='              ', bg='indian red').grid(row=6, column=6)
-        Label(self.window, text='              ', bg='indian red').grid(row=6, column=7)
-        Label(self.window, text='              ', bg='indian red').grid(row=7, column=6)
-        Label(self.window, text='              ', bg='indian red').grid(row=7, column=7)
+        Label(self.window, text='       8       ', bg='indian red').grid(row=6, column=6)
+        Label(self.window, text='       8       ', bg='indian red').grid(row=6, column=7)
+        Label(self.window, text='       8       ', bg='indian red').grid(row=7, column=6)
+        Label(self.window, text='       8       ', bg='indian red').grid(row=7, column=7)
 
-        Label(self.window, text='              ', bg='dodger blue').grid(row=0, column=3)
-        Label(self.window, text='              ', bg='dodger blue').grid(row=0, column=4)
-        Label(self.window, text='              ', bg='dodger blue').grid(row=0, column=5)
-        Label(self.window, text='              ', bg='dodger blue').grid(row=0, column=6)
-        Label(self.window, text='              ', bg='dodger blue').grid(row=1, column=3)
-        Label(self.window, text='              ', bg='dodger blue').grid(row=1, column=4)
-        Label(self.window, text='              ', bg='dodger blue').grid(row=1, column=5)
-        Label(self.window, text='              ', bg='dodger blue').grid(row=1, column=6)
-        Label(self.window, text='              ', bg='dodger blue').grid(row=2, column=4)
-        Label(self.window, text='              ', bg='dodger blue').grid(row=2, column=5)
+        Label(self.window, text='       1       ', bg='dodger blue').grid(row=0, column=3)
+        Label(self.window, text='       1       ', bg='dodger blue').grid(row=0, column=4)
+        Label(self.window, text='       1       ', bg='dodger blue').grid(row=0, column=5)
+        Label(self.window, text='       1       ', bg='dodger blue').grid(row=0, column=6)
+        Label(self.window, text='       1       ', bg='dodger blue').grid(row=1, column=3)
+        Label(self.window, text='       1       ', bg='dodger blue').grid(row=1, column=4)
+        Label(self.window, text='       1       ', bg='dodger blue').grid(row=1, column=5)
+        Label(self.window, text='       1       ', bg='dodger blue').grid(row=1, column=6)
+        Label(self.window, text='       1       ', bg='dodger blue').grid(row=2, column=4)
+        Label(self.window, text='       1       ', bg='dodger blue').grid(row=2, column=5)
 
-        Label(self.window, text='              ', bg='dodger blue').grid(row=3, column=0)
-        Label(self.window, text='              ', bg='dodger blue').grid(row=4, column=0)
-        Label(self.window, text='              ', bg='dodger blue').grid(row=5, column=0)
-        Label(self.window, text='              ', bg='dodger blue').grid(row=6, column=0)
-        Label(self.window, text='              ', bg='dodger blue').grid(row=3, column=1)
-        Label(self.window, text='              ', bg='dodger blue').grid(row=4, column=1)
-        Label(self.window, text='              ', bg='dodger blue').grid(row=5, column=1)
-        Label(self.window, text='              ', bg='dodger blue').grid(row=6, column=1)
-        Label(self.window, text='              ', bg='dodger blue').grid(row=4, column=2)
-        Label(self.window, text='              ', bg='dodger blue').grid(row=5, column=2)
+        Label(self.window, text='       2       ', bg='dodger blue').grid(row=3, column=0)
+        Label(self.window, text='       2       ', bg='dodger blue').grid(row=4, column=0)
+        Label(self.window, text='       2       ', bg='dodger blue').grid(row=5, column=0)
+        Label(self.window, text='       2       ', bg='dodger blue').grid(row=6, column=0)
+        Label(self.window, text='       2       ', bg='dodger blue').grid(row=3, column=1)
+        Label(self.window, text='       2       ', bg='dodger blue').grid(row=4, column=1)
+        Label(self.window, text='       2       ', bg='dodger blue').grid(row=5, column=1)
+        Label(self.window, text='       2       ', bg='dodger blue').grid(row=6, column=1)
+        Label(self.window, text='       2       ', bg='dodger blue').grid(row=4, column=2)
+        Label(self.window, text='       2       ', bg='dodger blue').grid(row=5, column=2)
 
-        Label(self.window, text='              ', bg='deep sky blue').grid(row=3, column=4)
-        Label(self.window, text='              ', bg='deep sky blue').grid(row=3, column=5)
-        Label(self.window, text='              ', bg='deep sky blue').grid(row=4, column=3)
-        Label(self.window, text='              ', bg='deep sky blue').grid(row=4, column=4)
-        Label(self.window, text='              ', bg='deep sky blue').grid(row=4, column=5)
-        Label(self.window, text='              ', bg='deep sky blue').grid(row=4, column=6)
-        Label(self.window, text='              ', bg='deep sky blue').grid(row=5, column=3)
-        Label(self.window, text='              ', bg='deep sky blue').grid(row=5, column=4)
-        Label(self.window, text='              ', bg='deep sky blue').grid(row=5, column=5)
-        Label(self.window, text='              ', bg='deep sky blue').grid(row=5, column=6)
-        Label(self.window, text='              ', bg='deep sky blue').grid(row=6, column=5)
-        Label(self.window, text='              ', bg='deep sky blue').grid(row=6, column=4)
+        Label(self.window, text='       3       ', bg='deep sky blue').grid(row=3, column=4)
+        Label(self.window, text='       3       ', bg='deep sky blue').grid(row=3, column=5)
+        Label(self.window, text='       3       ', bg='deep sky blue').grid(row=4, column=3)
+        Label(self.window, text='       3       ', bg='deep sky blue').grid(row=4, column=4)
+        Label(self.window, text='       3       ', bg='deep sky blue').grid(row=4, column=5)
+        Label(self.window, text='       3       ', bg='deep sky blue').grid(row=4, column=6)
+        Label(self.window, text='       3       ', bg='deep sky blue').grid(row=5, column=3)
+        Label(self.window, text='       3       ', bg='deep sky blue').grid(row=5, column=4)
+        Label(self.window, text='       3       ', bg='deep sky blue').grid(row=5, column=5)
+        Label(self.window, text='       3       ', bg='deep sky blue').grid(row=5, column=6)
+        Label(self.window, text='       3       ', bg='deep sky blue').grid(row=6, column=5)
+        Label(self.window, text='       3       ', bg='deep sky blue').grid(row=6, column=4)
 
-        Label(self.window, text='              ', bg='dodger blue').grid(row=3, column=9)
-        Label(self.window, text='              ', bg='dodger blue').grid(row=4, column=9)
-        Label(self.window, text='              ', bg='dodger blue').grid(row=5, column=9)
-        Label(self.window, text='              ', bg='dodger blue').grid(row=6, column=9)
-        Label(self.window, text='              ', bg='dodger blue').grid(row=3, column=8)
-        Label(self.window, text='              ', bg='dodger blue').grid(row=4, column=8)
-        Label(self.window, text='              ', bg='dodger blue').grid(row=5, column=8)
-        Label(self.window, text='              ', bg='dodger blue').grid(row=6, column=8)
-        Label(self.window, text='              ', bg='dodger blue').grid(row=4, column=7)
-        Label(self.window, text='              ', bg='dodger blue').grid(row=5, column=7)
+        Label(self.window, text='       4       ', bg='dodger blue').grid(row=3, column=9)
+        Label(self.window, text='       4       ', bg='dodger blue').grid(row=4, column=9)
+        Label(self.window, text='       4       ', bg='dodger blue').grid(row=5, column=9)
+        Label(self.window, text='       4       ', bg='dodger blue').grid(row=6, column=9)
+        Label(self.window, text='       4       ', bg='dodger blue').grid(row=3, column=8)
+        Label(self.window, text='       4       ', bg='dodger blue').grid(row=4, column=8)
+        Label(self.window, text='       4       ', bg='dodger blue').grid(row=5, column=8)
+        Label(self.window, text='       4       ', bg='dodger blue').grid(row=6, column=8)
+        Label(self.window, text='       4       ', bg='dodger blue').grid(row=4, column=7)
+        Label(self.window, text='       4       ', bg='dodger blue').grid(row=5, column=7)
 
-        Label(self.window, text='              ', bg='dodger blue').grid(row=9, column=3)
-        Label(self.window, text='              ', bg='dodger blue').grid(row=9, column=4)
-        Label(self.window, text='              ', bg='dodger blue').grid(row=9, column=5)
-        Label(self.window, text='              ', bg='dodger blue').grid(row=9, column=6)
-        Label(self.window, text='              ', bg='dodger blue').grid(row=8, column=3)
-        Label(self.window, text='              ', bg='dodger blue').grid(row=8, column=4)
-        Label(self.window, text='              ', bg='dodger blue').grid(row=8, column=5)
-        Label(self.window, text='              ', bg='dodger blue').grid(row=8, column=6)
-        Label(self.window, text='              ', bg='dodger blue').grid(row=7, column=4)
-        Label(self.window, text='              ', bg='dodger blue').grid(row=7, column=5)
+        Label(self.window, text='       5       ', bg='dodger blue').grid(row=9, column=3)
+        Label(self.window, text='       5       ', bg='dodger blue').grid(row=9, column=4)
+        Label(self.window, text='       5       ', bg='dodger blue').grid(row=9, column=5)
+        Label(self.window, text='       5       ', bg='dodger blue').grid(row=9, column=6)
+        Label(self.window, text='       5       ', bg='dodger blue').grid(row=8, column=3)
+        Label(self.window, text='       5       ', bg='dodger blue').grid(row=8, column=4)
+        Label(self.window, text='       5       ', bg='dodger blue').grid(row=8, column=5)
+        Label(self.window, text='       5       ', bg='dodger blue').grid(row=8, column=6)
+        Label(self.window, text='       5       ', bg='dodger blue').grid(row=7, column=4)
+        Label(self.window, text='       5       ', bg='dodger blue').grid(row=7, column=5)
 
         #for i in range(0, len(self.car_array)):
         #    Label(self.window, text=i, bg='forest green').grid(row=self.car_array[i].point.x, column=self.car_array[i].point.y)
@@ -226,26 +257,33 @@ class GUI(Frame):
         # check what type of spot the car is occupying and replace it with the right color
         for i in range(0, len(self.prev_car_array)):
             if self.previous[self.prev_car_array[i].point.x][self.prev_car_array[i].point.y] == predefines.EMPTY:
-                Label(self.window, text='              ', bg='khaki').grid(row=self.prev_car_array[i].point.x, column=self.prev_car_array[i].point.y)
+                Label(self.window, text='       0       ', bg='khaki').grid(row=self.prev_car_array[i].point.x, column=self.prev_car_array[i].point.y)
             elif self.previous[self.prev_car_array[i].point.x][self.prev_car_array[i].point.y] == predefines.INTERSECTION1:
-                Label(self.window, text='              ', bg='dodger blue').grid(row=self.prev_car_array[i].point.x, column=self.prev_car_array[i].point.y)
+                Label(self.window, text='       1       ', bg='dodger blue').grid(row=self.prev_car_array[i].point.x, column=self.prev_car_array[i].point.y)
             elif self.previous[self.prev_car_array[i].point.x][self.prev_car_array[i].point.y] == predefines.INTERSECTION2:
-                Label(self.window, text='              ', bg='dodger blue').grid(row=self.prev_car_array[i].point.x, column=self.prev_car_array[i].point.y)
+                Label(self.window, text='       2       ', bg='dodger blue').grid(row=self.prev_car_array[i].point.x, column=self.prev_car_array[i].point.y)
             elif self.previous[self.prev_car_array[i].point.x][self.prev_car_array[i].point.y] == predefines.INTERSECTION3:
-                Label(self.window, text='              ', bg='deep sky blue').grid(row=self.prev_car_array[i].point.x, column=self.prev_car_array[i].point.y)
+                Label(self.window, text='       3       ', bg='deep sky blue').grid(row=self.prev_car_array[i].point.x, column=self.prev_car_array[i].point.y)
             elif self.previous[self.prev_car_array[i].point.x][self.prev_car_array[i].point.y] == predefines.INTERSECTION4:
-                Label(self.window, text='              ', bg='dodger blue').grid(row=self.prev_car_array[i].point.x, column=self.prev_car_array[i].point.y)
+                Label(self.window, text='       4       ', bg='dodger blue').grid(row=self.prev_car_array[i].point.x, column=self.prev_car_array[i].point.y)
             elif self.previous[self.prev_car_array[i].point.x][self.prev_car_array[i].point.y] == predefines.INTERSECTION5:
-                Label(self.window, text='              ', bg='dodger blue').grid(row=self.prev_car_array[i].point.x, column=self.prev_car_array[i].point.y)
+                Label(self.window, text='       5       ', bg='dodger blue').grid(row=self.prev_car_array[i].point.x, column=self.prev_car_array[i].point.y)
             elif self.previous[self.prev_car_array[i].point.x][self.prev_car_array[i].point.y] == predefines.OUTER_CORNER1:
-                Label(self.window, text='              ', bg='khaki').grid(row=self.prev_car_array[i].point.x, column=self.prev_car_array[i].point.y)
+                Label(self.window, text='       0       ', bg='khaki').grid(row=self.prev_car_array[i].point.x, column=self.prev_car_array[i].point.y)
             elif self.previous[self.prev_car_array[i].point.x][self.prev_car_array[i].point.y] == predefines.OUTER_CORNER2:
-                Label(self.window, text='              ', bg='khaki').grid(row=self.prev_car_array[i].point.x, column=self.prev_car_array[i].point.y)
+                Label(self.window, text='       0       ', bg='khaki').grid(row=self.prev_car_array[i].point.x, column=self.prev_car_array[i].point.y)
             elif self.previous[self.prev_car_array[i].point.x][self.prev_car_array[i].point.y] == predefines.OUTER_CORNER3:
-                Label(self.window, text='              ', bg='khaki').grid(row=self.prev_car_array[i].point.x, column=self.prev_car_array[i].point.y)
+                Label(self.window, text='       0       ', bg='khaki').grid(row=self.prev_car_array[i].point.x, column=self.prev_car_array[i].point.y)
             elif self.previous[self.prev_car_array[i].point.x][self.prev_car_array[i].point.y] == predefines.OUTER_CORNER4:
-                Label(self.window, text='              ', bg='khaki').grid(row=self.prev_car_array[i].point.x, column=self.prev_car_array[i].point.y)
-
+                Label(self.window, text='       0       ', bg='khaki').grid(row=self.prev_car_array[i].point.x, column=self.prev_car_array[i].point.y)
+            elif self.previous[self.prev_car_array[i].point.x][self.prev_car_array[i].point.y] == predefines.INNER_CORNER1:
+                Label(self.window, text='       0       ', bg='khaki').grid(row=self.prev_car_array[i].point.x, column=self.prev_car_array[i].point.y)
+            elif self.previous[self.prev_car_array[i].point.x][self.prev_car_array[i].point.y] == predefines.INNER_CORNER2:
+                Label(self.window, text='       0       ', bg='khaki').grid(row=self.prev_car_array[i].point.x, column=self.prev_car_array[i].point.y)
+            elif self.previous[self.prev_car_array[i].point.x][self.prev_car_array[i].point.y] == predefines.INNER_CORNER3:
+                Label(self.window, text='       0       ', bg='khaki').grid(row=self.prev_car_array[i].point.x, column=self.prev_car_array[i].point.y)
+            elif self.previous[self.prev_car_array[i].point.x][self.prev_car_array[i].point.y] == predefines.INNER_CORNER4:
+                Label(self.window, text='       0       ', bg='khaki').grid(row=self.prev_car_array[i].point.x, column=self.prev_car_array[i].point.y)
 
 #        if self.previous[self.prev_car2.point.x][self.prev_car2.point.y] == predefines.EMPTY:
 #            Label(self.window, text='              ', bg='khaki').grid(row=self.prev_car2.point.x, column=self.prev_car2.point.y)
