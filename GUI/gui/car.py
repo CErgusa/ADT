@@ -382,8 +382,8 @@ class Car(Point):
                 # can go up, down, or right
                 self.path = rand.og_randint(0, 2)
             elif self.direction == predefines.DOWN:
-                # down, left, right
-                self.path = rand.skip_randint(0, 3, 1)
+                # down, left, right (can't go up)
+                self.path = rand.og_randint(1, 3)
             elif self.direction == predefines.LEFT:
                 # up, down, left
                 self.path = rand.skip_randint(0, 3, 2)
