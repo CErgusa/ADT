@@ -23,6 +23,8 @@
 #define baud_128000_FBRD 4 // int(0.0625 * 64 + 0.5) = int(4.5) = 4
 #define baud_230400_IBRD 21  // int( 80M / (16 * 230400)) = int(21.7013) = 21
 #define baud_230400_FRBD 45 // int(0.7013 * 64 + 0.5) = int(45.3888) = 45
+#define baud_921600_IBRD 5  // int( 80M / (16 * 921600)) = int(5.4253) = 5
+#define baud_921600_FRBD 27 // int(0.425 * 64 + 0.5) = int(27.722) = 27
 
 // PB0: UART1 Rx <--> Lidar Tx
 // PB1: UART1 Tx <--> Lidar Rx
@@ -57,12 +59,14 @@ void UART0_Init(void){
   while((SYSCTL_PRGPIO_R&0x01) == 0){}; //wait status of initialized clock
   UART0_CTL_R &= ~UART_CTL_UARTEN;      // disable UART
 		
-  UART0_IBRD_R = baud_9600_IBRD;
-  UART0_FBRD_R = baud_9600_FBRD;
+  //UART0_IBRD_R = baud_9600_IBRD;
+  //UART0_FBRD_R = baud_9600_FBRD;
   //UART0_IBRD_R = baud_128000_IBRD;
   //UART0_FBRD_R = baud_128000_FBRD;
   //UART0_IBRD_R = baud_230400_IBRD;
   //UART0_FBRD_R = baud_230400_FRBD;
+  UART0_IBRD_R = baud_921600_IBRD;
+  UART0_FBRD_R = baud_921600_FRBD;
   
 	// 8 bit word length (no parity bits, one stop bit, FIFOs)
   UART0_LCRH_R = (UART_LCRH_WLEN_8|UART_LCRH_FEN);
@@ -89,6 +93,11 @@ void UART0_OutChar(unsigned char data)
   
   while((UART0_FR_R&UART_FR_TXFF) != 0);
   UART0_DR_R = data;
+}
+
+void UART0_HardFault(void)
+{
+  
 }
 
 // PB0: UART1 Rx <--> Lidar Tx

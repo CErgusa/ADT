@@ -22,6 +22,8 @@ void restart_lidar(void);
 
 void lidar_stop_command(void);
 
+void lidar_cleanup(void);
+
 void set_lidar_speed(void);
 
 void health(void);
@@ -43,7 +45,6 @@ void device_status(void);
 
 #define SCAN_NODE_OFFSET 0x05
 #define SCAN_RESPONSE_HEADER 0xA5
-#define SCAN_HEADER_SIZE 0x07
 #define PACKET_FIRST_BYTE 0xA5
 #define MAX_LIDAR_PACKET_SIZE 90 // 10 + 80
 #define ZERO_PACKET 0x00

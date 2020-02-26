@@ -12,7 +12,12 @@
 #define ERROR 0
 #define NO_ERROR 1
 #define MAX_PACKET_SIZE 167 // Size[1] + Angle[40*2] + Dist40*2] + IR[3] + Voltage[3]
+#define SCAN_HEADER_SIZE 0x07
 #define PI 3.1415f // test
+
+extern void DisableInterrupts(void);
+extern void EnableInterrupts(void);
+
 
 
 void clock_check_loop(void)
@@ -93,31 +98,26 @@ void system_IR_cell_add_packet(unsigned char *buffer)
 
 int system_engine(void)
 {
-
-  float_debugging(0.0f);
+  //float_debugging(0.0f);
   //clock_check_loop();
+  
   lidar_stop_command();
-  // get buffer for sample array
-  lidar_scan_response();
 
+  lidar_scan_response();
+  
   while (1)
   {
     unsigned char buffer[MAX_PACKET_SIZE] = { 0 };
     // get rest of the packet
-    int success = lidar_get_packet(buffer);
+    int packet_type = lidar_get_packet(buffer);
 
-    if (success)
+    if (packet_type == 0x00) // Point cloud
     {
-      system_IR_cell_add_packet(buffer);
-      system_send(buffer);
-      continue;
+      //UART0_OutChar('S');
+      //system_IR_cell_add_packet(buffer);
+      //system_send(buffer);
     }
-    else // Some problem occur, not aligned correctly?
-    {
-      lidar_stop_command();
-      // get buffer for sample array
-      lidar_scan_response();
-    }
+    UART0_OutChar('D');
   }
 
   return ERROR;

@@ -84,3 +84,8 @@ void systick_wait_sec(int delay)
   }
 }
 
+void systick_timeout(int counter)
+{
+  
+}
+
