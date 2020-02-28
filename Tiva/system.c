@@ -7,54 +7,17 @@
 #include "ADC.h"
 #include "GDL.h"
 #include "lidar.h"
-#include <math.h> // test
+#include "utils.h"
 
-#define ERROR 0
-#define NO_ERROR 1
-#define MAX_PACKET_SIZE 167 // Size[1] + Angle[40*2] + Dist40*2] + IR[3] + Voltage[3]
-#define SCAN_HEADER_SIZE 0x07
-#define PI 3.1415f // test
+#include <stdio.h> // sizeof
 
-extern void DisableInterrupts(void);
-extern void EnableInterrupts(void);
-
+#define MAX_PACKET_SIZE 167 // Size[1] + Angle[40*2] + Dist[40*2] + IR[3] + Voltage[3]
 
 
 void clock_check_loop(void)
 {
-  // float->atan->scale->int
-  float float_shit[4] = { 0.25f, 0.5f, 0.75f, 0.99f };
-  int int_shit[4] = { 0 };
-  int i;
-  for (i = 0; i <4; ++i)
-  {
-    float atan_shit = (atan(float_shit[i]));
-    float degree_shit = atan_shit * (180.f / PI);
-    float scale_shit = degree_shit*100.f;
-    int_shit[i] = (int)scale_shit; // {0x057B, 0x0A60, 0x0E66, 0x1177}
-  }
-  
-  unsigned char buffer[8];
-  for (i = 0; i < 4; ++i)
-  {
-    int index = 2*i;
-    buffer[index] = int_shit[i] >> 8;
-    buffer[index+1] = int_shit[i] & (0x00FF);
-  }
-
-  // int->float->scale
-  int test = 1555;
-  float test1 = ((float)test)/100.f; // 15.55
-  float test2 = test1 + 0.5; // 16.01
-  float test3 = test2 * 100.f; // 1601.
-  int test4 = (int)test3; // 0x0641
-
-  unsigned char buffer0 = test4 >> 8;
-  UART0_OutChar(buffer0);
-  
+  return;
 }
-
-
 
 void system_init(void)
 {
@@ -73,9 +36,8 @@ void system_send(unsigned char *buffer)
 {
   // Trigger GPIO interrupt of Rpi
   GDL_send(0x01);
-  int i;
-  int size = buffer[0] + 6;
-  for (i = 0; i < size; ++i)
+  unsigned char i;
+  for (i = 0; i <= buffer[0]; ++i)
   {
     SSI_send_byte(buffer[i]);
   }
@@ -87,38 +49,58 @@ void system_IR_cell_add_packet(unsigned char *buffer)
 {
   // Send IR, Cell data
   // Only MSB 8bits
-  unsigned char actual_size = buffer[0];
-  buffer[actual_size] = 11;//ADC_Get(1, IR1_CHANNEL) >> 4;
-  buffer[actual_size + 1] = 22;//ADC_Get(1, IR2_CHANNEL) >> 4;
-  buffer[actual_size + 2] = 33;//ADC_Get(1, IR3_CHANNEL) >> 4;
-  buffer[actual_size + 3] = 44;//ADC_Get(0, CELL1_CHANNEL) >> 4;
-  buffer[actual_size + 4] = 55;//ADC_Get(0, CELL2_CHANNEL) >> 4;
-  buffer[actual_size + 5] = 66;//ADC_Get(0, CELL3_CHANNEL) >> 4;
+  
+  unsigned char IR_Cell_start = 1 + buffer[0]; // ~ [161]
+  buffer[IR_Cell_start] = 0xAA;//ADC_Get(1, IR1_CHANNEL) >> 4;
+  buffer[IR_Cell_start + 1] = 0xBB;//ADC_Get(1, IR2_CHANNEL) >> 4;
+  buffer[IR_Cell_start + 2] = 0xCC;//ADC_Get(1, IR3_CHANNEL) >> 4;
+  buffer[IR_Cell_start + 3] = 0xDD;//ADC_Get(0, CELL1_CHANNEL) >> 4;
+  buffer[IR_Cell_start + 4] = 0xEE;//ADC_Get(0, CELL2_CHANNEL) >> 4;
+  buffer[IR_Cell_start + 5] = 0xFF;//ADC_Get(0, CELL3_CHANNEL) >> 4;
+  
+  // Update the size
+  buffer[0] += 6;
 }
 
 int system_engine(void)
 {
+
   //float_debugging(0.0f);
   //clock_check_loop();
+
+  //unsigned char size_uchar= sizeof(unsigned char);
+  //unsigned char size_int = sizeof(int);  
+  //unsigned char size_float = sizeof(float);
+  //UART0_OutChar(value_to_char(size_uchar));
+  //UART0_OutChar(value_to_char(size_int));
+  //UART0_OutChar(value_to_char(size_float));
+  
   
   lidar_stop_command();
 
   lidar_scan_response();
+
+  unsigned char buffer[MAX_PACKET_SIZE] = { 0 };  
   
   while (1)
   {
-    unsigned char buffer[MAX_PACKET_SIZE] = { 0 };
+    UART0_OutChar('a');
     // get rest of the packet
     int packet_type = lidar_get_packet(buffer);
 
     if (packet_type == 0x00) // Point cloud
     {
-      //UART0_OutChar('S');
-      //system_IR_cell_add_packet(buffer);
-      //system_send(buffer);
+      system_IR_cell_add_packet(buffer);
+      system_send(buffer);
     }
-    UART0_OutChar('D');
+    
+    int i;
+    for (i = 0; i < MAX_PACKET_SIZE; ++i)
+    {
+      buffer[i] = 0;
+    }
+    UART0_OutChar('h');
   }
 
-  return ERROR;
+  return 0;
 }

@@ -25,6 +25,8 @@
 #define baud_230400_FRBD 45 // int(0.7013 * 64 + 0.5) = int(45.3888) = 45
 #define baud_921600_IBRD 5  // int( 80M / (16 * 921600)) = int(5.4253) = 5
 #define baud_921600_FRBD 27 // int(0.425 * 64 + 0.5) = int(27.722) = 27
+#define baud_1M_IBRD 5  // int( 80M / (16 * 1M)) = int(5) = 5
+#define baud_1M_FRBD 0 // int(0 * 64 + 0.5) = int(0.5) = 0
 
 // PB0: UART1 Rx <--> Lidar Tx
 // PB1: UART1 Tx <--> Lidar Rx
@@ -67,6 +69,8 @@ void UART0_Init(void){
   //UART0_FBRD_R = baud_230400_FRBD;
   UART0_IBRD_R = baud_921600_IBRD;
   UART0_FBRD_R = baud_921600_FRBD;
+  //UART0_IBRD_R = baud_1M_IBRD;
+  //UART0_FBRD_R = baud_1M_FRBD;
   
 	// 8 bit word length (no parity bits, one stop bit, FIFOs)
   UART0_LCRH_R = (UART_LCRH_WLEN_8|UART_LCRH_FEN);
