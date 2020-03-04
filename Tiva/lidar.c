@@ -22,6 +22,8 @@
 #define LEFT_EDGE_RAD 4.712f
 #define RIGHT_EDGE_RAD 1.570f
 
+#define TWOPI 6.2831f
+
 // PB0: UART1 Rx <- Lidar Tx
 // PB1: UART1 Tx -> Lidar Rx
 // PF2 -> M_SCTP(lidar): M1PWM6
@@ -123,29 +125,27 @@ int lidar_scan_response(void)
   return 1;
 }
 
-
-void lidar_push_filtered_to_buffer(int *angle_filtered, int *dist_filtered, unsigned char *buffer)
+void lidar_push_filtered_to_buffer(int x_filtered, int y_filtered, int theta_filtered, int r_filtered, unsigned char *buffer)
 {
-  UART0_OutChar('d');
-  unsigned char filtered_size = buffer[0]; // 0~40
-  unsigned char last_angle_index = filtered_size * 2; // ~ [80]
-  unsigned char i;  
-  for (i = 0; i < filtered_size; ++i)
-  {
-    unsigned char index = (2 * i) + 1; // 1 ~ 79
-    
-    // [1,2], [3,4], [5,6] .... [79, 80]
-    buffer[index] = angle_filtered[i] >> 8;
-    buffer[index+1] = (angle_filtered[i] & 0x00FF);
-
-    // [81,82], [83,84], [85,86] ... [159, 160]
-    buffer[last_angle_index + index] = dist_filtered[i] >> 8;
-    buffer[last_angle_index + index + 1] = (dist_filtered[i] & 0x00FF);
-  }
+  unsigned char n = buffer[0]; // 0~40
+  int x_index = (8 * n) + 1;
+  int y_index = (8 * n) + 3;
+  int theta_index = (8 * n) + 5;
+  int r_index = (8 * n) + 7;
   
-  // valid buffer size so far = angle + distance
-  buffer[0] = (4 * filtered_size); // 0 ~ 160
-  UART0_OutChar('e');
+  buffer[x_index] =  (x_filtered >> 8);
+  buffer[x_index+1] = (x_filtered & 0x00FF);
+  
+  buffer[y_index] = (y_filtered >> 8);
+  buffer[y_index+1] = (y_filtered & 0x00FF);
+  
+  buffer[theta_index] = (theta_filtered >> 8);
+  buffer[theta_index+1] = (theta_filtered & 0x00FF);
+  
+  buffer[r_index] = (r_filtered >> 8);
+  buffer[r_index+1] = (r_filtered & 0x00FF);
+  
+  buffer[0] += 1;
 }
 
 void lidar_calculate_angle_distance(unsigned char *raw, unsigned char *buffer)
@@ -155,26 +155,32 @@ void lidar_calculate_angle_distance(unsigned char *raw, unsigned char *buffer)
   int fsa = (raw[4] | (raw[5] << 8));
   int lsa = (raw[6] | (raw[7] << 8));
 
-  int angle_filtered[MAX_LIDAR_SAMPLES] = { 0 };
-  int dist_filtered[MAX_LIDAR_SAMPLES] = { 0 };
+  // x = r*sin(theta)
+  // y = r*cos(theta)
+  //int angle_filtered[MAX_LIDAR_SAMPLES] = { 0 };
+  //int dist_filtered[MAX_LIDAR_SAMPLES] = { 0 };
+  //int x_filtered[MAX_LIDAR_SAMPLES] = { 0 };
+  //int y_filtered[MAX_LIDAR_SAMPLES] = { 0 };
   unsigned char starting_in = 0;
   unsigned char ending_in = 0;
 
   float diff_angle = 0.0f;
   float starting_angle = 0.0f;
-  float ending_angle = 0.f;
 
   int i;
-  int filtered_size = 0;
-      
-  for (i = 0; i < lsn;) //2
+  //int filtered_size = 0;
+  
+  for (i = 0; i < lsn;)
   {
     // (10,11), (12,13), (14,15) .... (88,89)
     int i_th_sample = (2 * i) + 10;
     int raw_dist = (raw[i_th_sample] | (raw[i_th_sample+1] << 8));
     float distance_i = 0.0f;
+    float angle_i = 0.0f;
     float ang_correct_i = 0.0f;
     float angle_xcorrect_i_degree = 0.0f;
+    
+    // Compute the ith distance and angcorrect
     if (raw_dist == 0)
     {
       distance_i = 0.f;
@@ -185,63 +191,65 @@ void lidar_calculate_angle_distance(unsigned char *raw, unsigned char *buffer)
       distance_i = ((float)raw_dist) / 4.0f; // Distance = raw / 4
       float parameter = 21.8f * ((155.3f - distance_i) / (155.3f * distance_i));
       ang_correct_i = atan(parameter);
-      //ang_correct_i = degree(atan(parameter));
     }
 
-    if (i == 0) // First sample: Starting angle, distance
+    // First sample: Starting angle, distance
+    if (i == 0)
     {
       if (fsa == 0x00)
       {
-        starting_angle = 0.0f;
+        angle_i = 0.0f;
       }
       else
       {
         angle_xcorrect_i_degree = (((float)(fsa >> 1)) / 64.f);
-        starting_angle = radian(angle_xcorrect_i_degree) + ang_correct_i;//ang_correct[0];
+        angle_i = radian(angle_xcorrect_i_degree) + ang_correct_i;//ang_correct[0];
       }
-      float_debugging(starting_angle);
+      float_debugging(angle_i);
       UART0_OutChar(' ');
-      if (starting_angle >= LEFT_EDGE_RAD || starting_angle <= RIGHT_EDGE_RAD)
-      {
-        starting_in = 1;
-        angle_filtered[0] = (int)(starting_angle * 1000.f);
-        dist_filtered[0] = distance_i;
-        ++filtered_size;
-      }
       
-      if (fsa == lsa)
+      if (fsa == 0)
       {
-        break;
+        if (lsa == 0)
+        {
+          break; // FSA = LSA = 0: zero angle data
+        }
       }
       
       if (lsn == 0x01) // Only one sample
       {
         break;
       }
+      // Keep the first angle for computing difference
+      starting_angle = angle_i;
+      
       i = lsn - 1; // Get the last one next
     }
     else if (i == lsn - 1) // Last sample: Ending angle, distance
     {
       if (lsa == 0x00)
       {
-        ending_angle = 0.0f;
+        angle_i = 0.0f;
         diff_angle = 0.0f;
       }
       else
       {
         angle_xcorrect_i_degree = (((float)(lsa >> 1)) / 64.f);
-        ending_angle = radian(angle_xcorrect_i_degree) + ang_correct_i;//ang_correct[lsn-1];
-        diff_angle = ending_angle - starting_angle;
+        angle_i = radian(angle_xcorrect_i_degree) + ang_correct_i;//ang_correct[lsn-1];
+        diff_angle = angle_i - starting_angle;
       }
-      float_debugging(ending_angle);
-      if (ending_angle >= LEFT_EDGE_RAD || ending_angle <= RIGHT_EDGE_RAD)
+      
+      if (angle_i < starting_angle)
       {
-        ending_in = 1;
-        angle_filtered[filtered_size] = (int)(ending_angle * 1000.f);
-        dist_filtered[filtered_size] = distance_i;
-        ++filtered_size;
+        diff_angle = (angle_i + TWOPI) - starting_angle;
       }
-      //float_debugging(ending_angle);
+      else
+      {
+        diff_angle = angle_i - starting_angle;
+      }
+      
+      float_debugging(angle_i);
+      
       if (lsn == 2)
       {
         // No middle samples,
@@ -250,28 +258,13 @@ void lidar_calculate_angle_distance(unsigned char *raw, unsigned char *buffer)
       else
       {
         i = 1; // Now get middle samples
-      }
-      
-      if ((starting_in == 0) && (ending_in == 0))
-      {
-        // starting angle and the ending angle are not in the range
-        // This packet does not need to be computed
-        break;
-      }
-      
+      }      
     }
     else // Middle samples: i = [1 ... lsn-1]
     {
-      float mid_angle = ((diff_angle / ((float)(lsn-1))) * (float)(i-1)) 
-                          + starting_angle 
-                          + ang_correct_i;
-      
-      if (mid_angle >= LEFT_EDGE_RAD|| mid_angle <= RIGHT_EDGE_RAD)
-      {
-        angle_filtered[filtered_size] = (int)(mid_angle * 1000.0f);
-        dist_filtered[filtered_size] = distance_i;
-        ++filtered_size;
-      }
+      angle_i = ((diff_angle / ((float)(lsn-1))) * (float)(i-1)) 
+                 + starting_angle + ang_correct_i;
+                 
       if (i == lsn - 2) // Loop terminates
       {
         break;
@@ -281,23 +274,60 @@ void lidar_calculate_angle_distance(unsigned char *raw, unsigned char *buffer)
         ++i;
       }
     }
-  }
- 
-  // Only if data in the valid range([0,90] | [270, 360]) exists
-  if (filtered_size > 0x00)
-  {
-    buffer[0] = filtered_size;
-    lidar_push_filtered_to_buffer(angle_filtered, dist_filtered, buffer);
+        
+    if (angle_i >= LEFT_EDGE_RAD || angle_i <= RIGHT_EDGE_RAD)
+    {
+      if (i == 0)
+      {
+        starting_in = 1;
+      }
+      else if (i == lsn - 1)
+      {
+        ending_in = 1;
+      }
+    
+      //x_filtered[filtered_size] = (int)(distance_i * sin(angle_i));
+      //y_filtered[filtered_size] = (int)(distance_i * cos(angle_i));
+      //angle_filtered[filtered_size] = (int)(angle_i * 1000.f);
+      //dist_filtered[filtered_size] = (int)(distance_i);
+      //++filtered_size;
+      
+      int x_filtered = (int)(distance_i * sin(angle_i));
+      int y_filtered = (int)(distance_i * cos(angle_i));
+      int theta_filtered = (int)(angle_i * 1000.f);
+      int r_filtered = (int)(distance_i);
+      
+      lidar_push_filtered_to_buffer(x_filtered, y_filtered, theta_filtered, r_filtered, buffer);
+    }
+    else
+    {
+      if (i == 0)
+      {
+        starting_in = 0;
+      }
+      else if (i == lsn - 1)
+      {
+        ending_in = 0;
+      }
+      // Angle in between, just skip
+
+      // If this packet is not in meaningful range, skip
+      if ((starting_in == 0) && (ending_in == 0))
+      {
+        break;
+      }
+    }
   }
   // If no data in the range, just skip
-  UART0_OutChar('f');
+  UART0_OutChar('d');
 }
 
 int lidar_get_packet(unsigned char *buffer)
 {
   UART0_OutChar('b');
   int i, j;
-  unsigned char raw[MAX_LIDAR_PACKET_SIZE] = { 0 };
+  //unsigned char raw[MAX_LIDAR_PACKET_SIZE] = { 0 };
+  unsigned char *raw = &(buffer[237]);
   
   while (raw[0] != 0xAA)
   {
@@ -314,7 +344,7 @@ int lidar_get_packet(unsigned char *buffer)
   if (raw[0] == 0xAA && // Valid PH:LL
       raw[1] == 0x55)   // Valid PH:HH
   {
-    int sample_quantity = raw[3] * 2;
+    int sample_quantity = raw[3] * 2; // 40 * 2 = 80
 
     for (j = 0; j < sample_quantity; ++i, ++j)
     {
@@ -354,7 +384,7 @@ int lidar_get_packet(unsigned char *buffer)
     packet_type = -1; // Failed
   }
   UART0_OutChar('>');
-  UART0_OutChar('g');
+  UART0_OutChar('e');
   return packet_type;
 }
 

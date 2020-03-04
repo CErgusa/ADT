@@ -11,7 +11,13 @@
 
 #include <stdio.h> // sizeof
 
-#define MAX_PACKET_SIZE 167 // Size[1] + Angle[40*2] + Dist[40*2] + IR[3] + Voltage[3]
+
+// x = r*sin(theta)
+// y = r*cos(theta)
+
+// | Size |  x  |  y  |  theta  |  r  |  IR  |  Cell  |
+//   1   +   80 +  80 +  80     +  80 +  3   + 3 = 327
+#define MAX_PACKET_SIZE 327
 
 
 void clock_check_loop(void)
@@ -50,21 +56,24 @@ void system_IR_cell_add_packet(unsigned char *buffer)
   // Send IR, Cell data
   // Only MSB 8bits
   
-  unsigned char IR_Cell_start = 1 + buffer[0]; // ~ [161]
+  unsigned char n = buffer[0];
+  int IR_Cell_start = 0;
+  if (n > 0)
+  {
+    IR_Cell_start = (8 * n) + 9;
+  }
+
   buffer[IR_Cell_start] = 0xAA;//ADC_Get(1, IR1_CHANNEL) >> 4;
   buffer[IR_Cell_start + 1] = 0xBB;//ADC_Get(1, IR2_CHANNEL) >> 4;
   buffer[IR_Cell_start + 2] = 0xCC;//ADC_Get(1, IR3_CHANNEL) >> 4;
   buffer[IR_Cell_start + 3] = 0xDD;//ADC_Get(0, CELL1_CHANNEL) >> 4;
   buffer[IR_Cell_start + 4] = 0xEE;//ADC_Get(0, CELL2_CHANNEL) >> 4;
   buffer[IR_Cell_start + 5] = 0xFF;//ADC_Get(0, CELL3_CHANNEL) >> 4;
-  
-  // Update the size
-  buffer[0] += 6;
 }
 
 int system_engine(void)
 {
-
+  
   //float_debugging(0.0f);
   //clock_check_loop();
 
@@ -75,12 +84,12 @@ int system_engine(void)
   //UART0_OutChar(value_to_char(size_int));
   //UART0_OutChar(value_to_char(size_float));
   
-  
   lidar_stop_command();
 
   lidar_scan_response();
-
-  unsigned char buffer[MAX_PACKET_SIZE] = { 0 };  
+  
+  unsigned char buffer[MAX_PACKET_SIZE] = { 0 };
+  int i;
   
   while (1)
   {
@@ -91,16 +100,14 @@ int system_engine(void)
     if (packet_type == 0x00) // Point cloud
     {
       system_IR_cell_add_packet(buffer);
-      system_send(buffer);
+      //system_send(buffer);
     }
+    UART0_OutChar('f');
     
-    int i;
     for (i = 0; i < MAX_PACKET_SIZE; ++i)
     {
       buffer[i] = 0;
     }
-    UART0_OutChar('h');
   }
-
   return 0;
 }
