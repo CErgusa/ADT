@@ -33,10 +33,13 @@ void PortC_Init(void)
   while((SYSCTL_PRGPIO_R&SYSCTL_PRGPIO_R2) == 0){};
 
   // Set input/output
+  // PC7-5 outputs, PC4 input
   // For now, set PC7-4 as output
   // set [7:4]
 	GPIO_PORTC_DIR_R |= 0xF0;
-	
+  // clear [4] : for PC4 as input
+	GPIO_PORTC_DIR_R &= ~(0x10);
+  
   // Disable alt function, so just GPIO
   // clear [7:4]
   GPIO_PORTC_AFSEL_R &= ~(0xF0);
@@ -47,7 +50,7 @@ void PortC_Init(void)
     
   // Disable Open Drain
   // clear [7:4]
-  GPIO_PORTC_ODR_R &= ~(0xF0);  
+  GPIO_PORTC_ODR_R &= ~(0xF0);
     
   // Disable pull-up
   // clear [7:4]
@@ -103,5 +106,50 @@ void GDL_send(unsigned char data_max5bits)
 
   GPIO_PORTC_DATA_R |= PCs;
   GPIO_PORTD_DATA_R |= PDs;
+}
+
+unsigned char GDL_read(unsigned char index)
+{
+  // PC4 -> GDL[0]
+  // PC5 -> GDL[1]
+  // PC6 -> GDL[2]
+  // PC7 -> GDL[3]
+  // PD6 -> GDL[4]
+  unsigned char value_pos = 0;
+  switch (index)
+  {
+    case 0: // GDL[0] - PC4
+    {
+      value_pos = (GPIO_PORTC_DATA_R & (0x01 << 4));
+      value_pos = (value_pos >> 4);
+      break;
+    }
+    case 1: // GDL[1] - PC5 
+    {
+      value_pos = (GPIO_PORTC_DATA_R & (0x01 << 5));
+      value_pos = (value_pos >> 5);
+      break;
+    }
+    case 2: // GDL[2] - PC6
+    {
+      value_pos = (GPIO_PORTC_DATA_R & (0x01 << 6));
+      value_pos = (value_pos >> 6);
+      break;
+    }
+    case 3: // GDL[3] - PC7
+    {
+      value_pos = (GPIO_PORTC_DATA_R & (0x01 << 7));
+      value_pos = (value_pos >> 7);
+      break;
+    }
+    case 4: // GDL[4] - PD6
+    {
+      value_pos = (GPIO_PORTD_DATA_R & (0x01 << 6));
+      value_pos = (value_pos >> 6);
+      break;
+    }
+    default: break;
+  }
+  return value_pos;
 }
 

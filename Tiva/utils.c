@@ -36,10 +36,10 @@ void print_hex(int value, int hex_digit)
 
 void float_debugging(float value)
 {
-  float scaled_value = value * 1000.f;
+  float scaled_value = value * 10.f;
   int int_value = (int)scaled_value;
   
-  print_hex(int_value, 4); // should be 4-hex-digit number
+  print_hex(int_value, 3); // should be 4-hex-digit number
 }
 
 

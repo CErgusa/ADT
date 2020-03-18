@@ -299,8 +299,6 @@ NMI_Handler     PROC
 HardFault_Handler\
                 PROC
                 EXPORT  HardFault_Handler         [WEAK]
-				;IMPORT	hardfault_detect
-				;B		hardfault_detect
 				B       .
                 ENDP
 
