@@ -41,7 +41,7 @@ void send_str(char *buffer){ //function for sending each byte of string one by o
 	}
 }
 
-unsigned char SSI_Read(unsigned char data)
+unsigned char SSI_read_byte(unsigned char data)
 {
   while((SSI0_SR_R&SSI_SR_TNF)==0){};  // wait until room in Transmit FIFO
 	SSI0_DR_R = data;                    // data out, garbage
