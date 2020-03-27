@@ -7,17 +7,64 @@
 #include "ADC.h"
 #include "GDL.h"
 #include "lidar.h"
+#include "utils.h"
 
+// | PH | CT | LSN | FSA | LSA | CS | Sn |
+//   2  + 1  +  1  +  2  +  2  +  2 + 80 = 90
+#define MAX_LIDAR_RAW_PACKET_SIZE 90
+
+// | Size | theta | r    |
+//   1char  4char   2char
+//   1    + 160   + 80
+#define MAX_LIDAR_COMPUTED_PACKET_SIZE 241
+
+#define MAX_NUM_PACKETS_PER_ZERO 15
+
+// 15 * MAX_LIDAR_COMPUTED_PACKET_SIZE = 15 * 241 = 3615
+#define MAX_LIDAR_ROTATION_DATA (MAX_NUM_PACKETS_PER_ZERO * MAX_LIDAR_COMPUTED_PACKET_SIZE)
+
+// | MAX_LIDAR_ROTATION_DATA | MAX_LIDAR_RAW_PACKET_SIZE |
+//          3615             +           90              = 3705
+#define MAX_LIDAR_DATA_SIZE (MAX_LIDAR_ROTATION_DATA+MAX_LIDAR_RAW_PACKET_SIZE)
 
 // | Size |  x  |  y  |  theta  |  r  |  IR  |  Cell  |
 //   1   +   80 +  80 +  80     +  80 +  3   + 3 = 327
 #define MAX_PACKET_SIZE 327
-#define AVERAGED_SIZE 
 
 
 void clock_check_loop(void)
 {
   return;
+}
+
+
+
+void system_flush_buffer(unsigned char *buffer, int size)
+{
+  // Must need this part to reserve the stack
+  int i;
+  for (i = 0; i < size; ++i)
+  {
+    buffer[i] = 0;
+  }
+}
+
+int system_get_angle(unsigned char* buffer, char start_end)
+{
+  // theta_index = (8 * n) + 5;
+  int sample_size = buffer[0];
+  int angle = 0;
+  if (start_end == 0) // starting
+  {
+    angle = buffer[8*sample_size + 5] << 8;
+    angle = angle | buffer[8*sample_size + 6];
+  }
+  else // ending
+  {
+    angle = buffer[8*sample_size + 7] << 8;
+    angle = angle | buffer[8*sample_size + 8];
+  }
+  return angle;
 }
 
 void system_init(void)
@@ -38,79 +85,165 @@ unsigned char system_RPi_ready(void)
   return GDL_read(0);
 }
 
-void system_send(unsigned char *buffer)
-{
-//  unsigned char buffer[MAX_PACKET_SIZE] = { 0 };
-//  buffer[0] = 0x28;
-//  int k;
-//  for (k = 1; k < MAX_PACKET_SIZE; ++k)
-//  {
-//    buffer[k] = k;
-//  }
 
-  // Set the ready flag in RPi
-  //while (1)
-  //{
-    if (GDL_read(0) == 1)
+
+
+void system_update_to_average(float *angle_windows, int *dist_windows, unsigned char *target_angle, unsigned char* target_dist)
+{
+  unsigned char i;
+  int average_dist = 0;
+  int valid_dist = 0;
+  float average_angle = 0.f;
+  float valid_angle = 0.0f;
+  for (i = 0; i < 3; ++i)
+  {
+    if (angle_windows[i] > 0.0f)
     {
-      unsigned char response = SSI_read_byte(0xAC);
-      if (response == 0xAC)
-      {
-        // size + (n * 2 * 4) + 6
-        int buffer_size = 1+(8*buffer[0])+6;
-        
-        int i;
-        for (i = 0; i < buffer_size; ++i)
-        {
-          SSI_send_byte(buffer[i]);
-        }
-      }
+      average_angle += angle_windows[i];
+      valid_angle += 1.0f;
     }
-  //}
+    
+    if (dist_windows[i] > 0)
+    {
+      average_dist += dist_windows[i];
+      ++valid_dist;
+    }
+  }
+  average_angle = average_angle / valid_angle;
+  average_dist = average_dist / valid_dist;
+  
+  store_float_in_4char(&average_angle, target_angle);
+  store_int_in_2char(average_dist, target_dist);
+}
+
+
+void system_lidar_averaging(unsigned char num_packets, unsigned char **packets)
+{
+  unsigned char i;
+  float angle_window[3] = { 0.f };
+  int dist_window[3] = { 0 };
+  unsigned char *angle_target_addr = 0;
+  unsigned char *distance_target_addr = 0;
+
+  for (i = 0; i < num_packets; ++i)
+  {
+    unsigned char j;
+    unsigned char *packet_i_th = packets[i];
+    unsigned char size_i_th = packet_i_th[0];
+
+    for (j = 1; j <= size_i_th; ++j)
+    {
+      unsigned char angle_index = 4*(j-1)+1;
+      unsigned char dist_index = 2*(j-1) + (4*size_i_th) + 1;
+      store_4char_in_float(&packet_i_th[angle_index], &angle_window[2]);
+      store_2char_in_int(&packet_i_th[dist_index], &dist_window[2]);
+      
+      if (angle_target_addr && distance_target_addr)
+      {
+        system_update_to_average(angle_window, dist_window, angle_target_addr, distance_target_addr);
+      }
+      
+      angle_window[0] = angle_window[1];
+      angle_window[1] = angle_window[2];
+      
+      dist_window[0] = dist_window[1];
+      dist_window[1] = dist_window[2];
+      
+      angle_target_addr = &packet_i_th[angle_index];
+      distance_target_addr = &packet_i_th[dist_index];
+    }
+  }
+  angle_window[2] = 0.f;
+  dist_window[2] = 0;
+  system_update_to_average(angle_window, dist_window, angle_target_addr, distance_target_addr);
 }
 
 void system_IR_cell_add_packet(unsigned char *buffer)
 {
-  // Send IR, Cell data
-  // Only MSB 8bits
-  unsigned char n = buffer[0];
-  int IR_Cell_start = 1;
-  if (n > 0)
-  {
-    IR_Cell_start = (8 * n) + 1;
-  }
+  buffer[0] = ADC_Get(1, IR1_CHANNEL) >> 4;
+  buffer[1] = ADC_Get(1, IR2_CHANNEL) >> 4;
+  buffer[2] = ADC_Get(1, IR3_CHANNEL) >> 4;
+  buffer[3] = 0xCD;//ADC_Get(0, CELL1_CHANNEL) >> 4;
+  buffer[4] = 0xCD;//ADC_Get(0, CELL2_CHANNEL) >> 4;
+  buffer[5] = 0xCD;//ADC_Get(0, CELL3_CHANNEL) >> 4;
+}
 
-  buffer[IR_Cell_start] = ADC_Get(1, IR1_CHANNEL) >> 4;
-  buffer[IR_Cell_start + 1] = ADC_Get(1, IR2_CHANNEL) >> 4;
-  buffer[IR_Cell_start + 2] = ADC_Get(1, IR3_CHANNEL) >> 4;
-  buffer[IR_Cell_start + 3] = 0xDD;//ADC_Get(0, CELL1_CHANNEL) >> 4;
-  buffer[IR_Cell_start + 4] = 0xEE;//ADC_Get(0, CELL2_CHANNEL) >> 4;
-  buffer[IR_Cell_start + 5] = 0xFF;//ADC_Get(0, CELL3_CHANNEL) >> 4;
+int system_count_total_buffer(unsigned char num_packets, unsigned char **packets)
+{
+  unsigned char i;
+  int num_total_samples = 0;
+  for (i = 0; i < num_packets; ++i)
+  {
+    num_total_samples += packets[i][0];
+  }
+  return (6 * num_total_samples) + num_packets;
+}
+
+
+void system_send(unsigned char num_packets, unsigned char **packets)
+{
+  if (GDL_read(0) == 1)
+  {
+    unsigned char response = SSI_read_byte(0xAC);
+    if (response == 0xAC)
+    {
+      int num_total_buffer = system_count_total_buffer(num_packets, packets);
+      print_hex(num_total_buffer, 3);
+      SSI_send_byte((char)((num_total_buffer & 0xFF00) >> 8));
+      SSI_send_byte((char)(num_total_buffer & 0x00FF));
+      
+      unsigned char i, j;
+      for (i = 0; i < num_packets; ++i)
+      {
+        unsigned char *packet_i_th = packets[i];
+        unsigned char packet_buffer_size = 6 * packet_i_th[0];
+        SSI_send_byte(packet_i_th[0]);
+        for (j = 1; j <= packet_buffer_size; ++j)
+        {
+          SSI_send_byte(packet_i_th[j]);
+        }
+      }
+      system_IR_cell_add_packet(packets[0]);
+      for (i = 0; i < 6; ++i)
+      {
+        SSI_send_byte(packets[0][i]);
+      }
+    }
+  }
 }
 
 void system_data_communication(unsigned char *buffer)
 {
   //UART0_OutChar('a');
-  // get rest of the packet
-  int packet_type = lidar_get_packet(buffer);
-
-  if (packet_type == 0x00) // Point cloud
+  unsigned char num_packets;
+  unsigned char* packets[MAX_NUM_PACKETS_PER_ZERO];
+  unsigned char *raw = (buffer + MAX_LIDAR_ROTATION_DATA);
+  
+  for (num_packets = 0; num_packets < MAX_NUM_PACKETS_PER_ZERO; ++num_packets)
   {
-    if (buffer[0] != 0x00)
-    {
-      system_IR_cell_add_packet(buffer);
-      system_send(buffer);
-    }
+    //unsigned char *i_th_packet_start = buffer + (MAX_LIDAR_COMPUTED_PACKET_SIZE * i);
+    packets[num_packets] = buffer + (MAX_LIDAR_COMPUTED_PACKET_SIZE * num_packets);
   }
+
+  unsigned char packet_type = 0x00;
+  
+  num_packets = 0;
+  while (packet_type != 0x03)
+  {
+    packet_type = lidar_get_packet(packets[num_packets], raw);
+    if (packet_type == 0x00)
+    {
+      ++num_packets;
+    }
+    system_flush_buffer(raw, MAX_LIDAR_RAW_PACKET_SIZE);
+  }
+  
+  // Data Collected
+  //system_lidar_averaging(num_packets, packets);
+  system_send(num_packets, packets);
   
   // Must need this part to reserve the stack
-  int i;
-  for (i = 0; i < MAX_PACKET_SIZE; ++i)
-  {
-    buffer[i] = 0;
-  }
-  
-  //UART0_OutChar('f');
+  system_flush_buffer(buffer, MAX_LIDAR_DATA_SIZE);
 }
 
 int system_engine(void)
@@ -129,7 +262,7 @@ int system_engine(void)
 
   lidar_scan_response();
   
-  unsigned char buffer[MAX_PACKET_SIZE] = { 0 };
+  unsigned char buffer[MAX_LIDAR_DATA_SIZE] = { 0 };
   
   while (1)
   {

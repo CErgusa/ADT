@@ -12,7 +12,9 @@ int lidar_scan_response(void);
 
 void get_packet_header(struct scan_node * PacketHeader);
 
-int lidar_get_packet(unsigned char * buffer);
+unsigned char lidar_get_packet(unsigned char *buffer, unsigned char *raw);
+
+void lidar_sync_packet(unsigned char *buffer);
 
 /********/
 
