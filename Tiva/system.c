@@ -8,6 +8,7 @@
 #include "GDL.h"
 #include "lidar.h"
 #include "utils.h"
+//#include "motor_control.h"
 
 // | PH | CT | LSN | FSA | LSA | CS | Sn |
 //   2  + 1  +  1  +  2  +  2  +  2 + 80 = 90
@@ -58,6 +59,7 @@ void system_init(void)
 	ADC0_Init();    // Batter cell voltage
   ADC1_Init();    // IR sensors
 	GDL_init();     // General Data Logic
+  //motor_control_Init() // Motor Controls
 }
 
 void system_send(unsigned char *buffer)
@@ -112,6 +114,8 @@ int system_engine(void)
   
   unsigned char buffer[MAX_PACKET_SIZE] = { 0 };
   int i;
+
+  //uint32_t front_IR;
   
   while (1)
   {
@@ -130,6 +134,9 @@ int system_engine(void)
     {
       buffer[i] = 0;
     }
+
+    //front_IR = ADC_Get(1, IR2_CHANNEL);
+    //motor_testing(front_IR);
   }
   return 0;
 }
