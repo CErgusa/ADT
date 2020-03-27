@@ -9,11 +9,23 @@
 #include "lidar.h"
 #include "utils.h"
 
-#include <stdio.h> // sizeof
+// | PH | CT | LSN | FSA | LSA | CS | Sn |
+//   2  + 1  +  1  +  2  +  2  +  2 + 80 = 90
+#define MAX_LIDAR_RAW_PACKET_SIZE 90
 
+// | Size | theta | r    |
+//   1char  4char   2char
+//   1    + 160   + 80
+#define MAX_LIDAR_COMPUTED_PACKET_SIZE 241
 
-// x = r*sin(theta)
-// y = r*cos(theta)
+#define MAX_NUM_PACKETS_PER_ZERO 15
+
+// 15 * MAX_LIDAR_COMPUTED_PACKET_SIZE = 15 * 241 = 3615
+#define MAX_LIDAR_ROTATION_DATA (MAX_NUM_PACKETS_PER_ZERO * MAX_LIDAR_COMPUTED_PACKET_SIZE)
+
+// | MAX_LIDAR_ROTATION_DATA | MAX_LIDAR_RAW_PACKET_SIZE |
+//          3615             +           90              = 3705
+#define MAX_LIDAR_DATA_SIZE (MAX_LIDAR_ROTATION_DATA+MAX_LIDAR_RAW_PACKET_SIZE)
 
 // | Size |  x  |  y  |  theta  |  r  |  IR  |  Cell  |
 //   1   +   80 +  80 +  80     +  80 +  3   + 3 = 327
@@ -23,6 +35,16 @@
 void clock_check_loop(void)
 {
   return;
+}
+
+void system_flush_buffer(unsigned char *buffer, int size)
+{
+  // Must need this part to reserve the stack
+  int i;
+  for (i = 0; i < size; ++i)
+  {
+    buffer[i] = 0;
+  }
 }
 
 void system_init(void)
