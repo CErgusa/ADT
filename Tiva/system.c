@@ -131,21 +131,22 @@ int system_count_total_buffer(unsigned char num_packets, unsigned char **packets
 
 void system_IR_cell_add_packet(unsigned char *buffer)
 {
-  buffer[0] = ADC_Get(1, IR1_CHANNEL) >> 4;
-  buffer[1] = ADC_Get(1, IR2_CHANNEL) >> 4;
-  buffer[2] = ADC_Get(1, IR3_CHANNEL) >> 4;
-  buffer[3] = 0xCD;//ADC_Get(0, CELL1_CHANNEL) >> 4;
+  buffer[0] = 0xFF - (ADC_Get(1, IR1_CHANNEL) >> 4);
+  buffer[1] = 0xFF - (ADC_Get(1, IR2_CHANNEL) >> 4);
+  buffer[2] = 0xFF - (ADC_Get(1, IR3_CHANNEL) >> 4);
+  buffer[3] = 0xC3;//ADC_Get(0, CELL1_CHANNEL) >> 4;
   buffer[4] = 0xCD;//ADC_Get(0, CELL2_CHANNEL) >> 4;
-  buffer[5] = 0xCD;//ADC_Get(0, CELL3_CHANNEL) >> 4;
+  buffer[5] = 0xC7;//ADC_Get(0, CELL3_CHANNEL) >> 4;
 }
 
-void system_send(unsigned char num_packets, unsigned char **packets)
+void system_send(unsigned char num_packets, unsigned char **packets, unsigned char *IR_Cell)
 {
   if (GDL_read(0) == 1)
   {
     unsigned char response = SSI_read_byte(0xAC);
     if (response == 0xAC)
     {
+      system_IR_cell_add_packet(IR_Cell);
       int num_total_buffer = system_count_total_buffer(num_packets, packets);
       print_hex(num_total_buffer, 3);
       SSI_send_byte((char)((num_total_buffer & 0xFF00) >> 8));
@@ -162,10 +163,10 @@ void system_send(unsigned char num_packets, unsigned char **packets)
           SSI_send_byte(packet_i_th[j]);
         }
       }
-      system_IR_cell_add_packet(packets[0]);
+
       for (i = 0; i < 6; ++i)
       {
-        SSI_send_byte(packets[0][i]);
+        SSI_send_byte(IR_Cell[i]);
       }
     }
   }
@@ -199,7 +200,7 @@ void system_data_communication(unsigned char *buffer)
   
   // Data Collected
   //system_lidar_averaging(num_packets, packets);
-  system_send(num_packets, packets);
+  system_send(num_packets, packets, raw);
   
   // Must need this part to reserve the stack
   system_flush_buffer(buffer, MAX_LIDAR_DATA_SIZE);
@@ -242,6 +243,7 @@ int system_engine(void)
   
   while (1)
   {
+    //system_IR_cell_add_packet(buffer);
     system_data_communication(buffer);
     //front_IR = ADC_Get(1, IR2_CHANNEL);
     //motor_testing(front_IR);
