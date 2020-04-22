@@ -1,7 +1,47 @@
+/******************************************************************************/
+/*!
+\file   motor_control.cpp
+\author Kenyu Tatsuta
+\par    email: k.tatsuta\@digipen.edu
+\par    DigiPen login: k.tatsuta
+\par    Course: ECE360
+\par    3rd Year Project
+\brief  
+  This is the implementation file for all member functions
+  for motor controls, as specified in specification
+  file motor_control.h.  
+  
+  Operations include:
+
+  - Function that calls all initialization functions
+  - PWM initialization for left motor speed control
+  - PWM initialization for right motor speed control
+  - GPIO output initializaition for left motor direction
+  - GPIO output initializaition for right motor direction
+  - GPIO input initialization for left motor encoder A detection
+  - GPIO input initialization for left motor encoder B detection
+  - GPIO input initialization for right motor encoder A detection
+  - GPIO input initialization for right motor encoder B detection
+  - Interrupt function when left motor encoder A is detected
+  - Interrupt function when left motor encoder B is detected
+  - Interrupt function when right motor encoder A is detected
+  - Interrupt function when right motor encoder B is detected
+  - Function that sets the speed of left motor
+  - Function that sets the speed of right motor
+	- Function that sets the direction of the left motor
+	- Function that sets the direction of the right motor
+  - Function that changes gradually the speed of left motor
+  - Function that changes gradually the speed of right motor
+	- Gives total number of left encoder tics (A + B)
+	- Gives total number of right encoder tics (A + B)
+	- Resets the read encoder data to 0
+	- Function that is called to test motor control functions
+
+*/
+/******************************************************************************/
+
 #include "motor_control.h"
 #include "tm4c123gh6pm.h"
-
-
 
 volatile uint32_t left_A_count;		// Incremented when interrupt for left encoder A detector is called (PB2)
 volatile uint32_t left_B_count;		// Incremented when interrupt for left encoder B detector is called (PB3)
@@ -55,6 +95,17 @@ void motor_control_Init(void)
 	using internal timers. PB6 will be used to control the 
 	speed of the left motor. PB6 uses Timer0A as its internal
 	timer.
+
+  \param period
+		int that determines the frequency of the PWM
+
+	\param high
+		int that determines how long PWM signal stays high
+
+	\attention
+		frequency = clock/period. high is low in this one
+		so it doesn't start moving after the initiation
+		is done.
 */
 void PWM_left_Init(uint16_t period, uint16_t high)
 {
@@ -79,6 +130,17 @@ void PWM_left_Init(uint16_t period, uint16_t high)
 	using internal timers. PB7 will be used to control the 
 	speed of the right motor. PB7 uses Timer0B as its internal
 	timer.
+
+  \param period
+		int that determines the frequency of the PWM
+
+	\param high
+		int that determines how long PWM signal stays high
+
+	\attention
+		frequency = clock/period. high is low in this one
+		so it doesn't start moving after the initiation
+		is done.
 */
 void PWM_right_Init(uint16_t period, uint16_t high)
 {
@@ -286,25 +348,33 @@ void Encoder_right_B_Init(void)
   EnableInterrupts();
 }
 
-	// Interrupt function called when PB2 reads positive edge.
+/* 
+	Interrupt function called when PB2 reads positive edge.
+*/
 void Timer3A_Handler(void)
 {
   TIMER3_ICR_R = 0x00000004;
   left_A_count++;		// Increment total number of left encoder A tics.
 }
-	// Interrupt function called when PB3 reads positive edge.
+/* 
+	Interrupt function called when PB3 reads positive edge.
+*/
 void Timer3B_Handler(void)
 {
   TIMER3_ICR_R = 0x00000400;
   left_B_count++;		// Increment total number of left encoder B tics.
 }
-	// Interrupt function called when PB4 reads positive edge.
+/*
+  Interrupt function called when PB4 reads positive edge.
+*/
 void Timer1A_Handler(void)
 {
   TIMER1_ICR_R = 0x00000004;
   right_A_count++;	// Increment total number of right encoder A tics.
 }
-	// Interrupt function called when PB5 reads positive edge.
+/*
+	Interrupt function called when PB5 reads positive edge.
+*/
 void Timer1B_Handler(void)
 {
   TIMER1_ICR_R = 0x00000400;
@@ -320,8 +390,9 @@ void Timer1B_Handler(void)
 	and full speed. This is achieved by changing the duty cycle
 	of the PWM signal output from PB6. 
 
-	input speed is any number from 5 to 95, the percentage speed
-	of the motor to move. DO NOT input below 5 or above 95.
+	\param speed
+		any int from 5 to 95, the percentage speed
+		of the motor to move. DO NOT input below 5 or above 95.
 */
 void set_left_speed(int speed)
 {
@@ -335,8 +406,9 @@ void set_left_speed(int speed)
 	and full speed. This is achieved by changing the duty cycle
 	of the PWM signal output from PB7. 
 
-	input speed is any number from 5 to 95, the percentage speed
-	of the motor to move. DO NOT input below 5 or above 95.
+	\param speed
+		any int from 5 to 95, the percentage speed
+		of the motor to move. DO NOT input below 5 or above 95.
 */
 void set_right_speed(int speed)
 {
@@ -350,8 +422,8 @@ void set_right_speed(int speed)
 	forward or backward. This is achieved by changing the digital
 	output of PE4. 
 
-	input direction takes either FORWARD or BACKWARD, declared at 
-	top.
+	\param direction 
+		takes either FORWARD or BACKWARD, declared at top as 1 or 0
 */
 void set_right_dir(int direction)
 {
@@ -366,8 +438,8 @@ void set_right_dir(int direction)
 	forward or backward. This is achieved by changing the digital
 	output of PE5. 
 
-	input direction takes either FORWARD or BACKWARD, declared at 
-	top.
+	\param direction 
+		takes either FORWARD or BACKWARD, declared at top as 1 or 0
 */
 void set_left_dir(int direction)
 {
@@ -382,8 +454,9 @@ void set_left_dir(int direction)
 	desired speed. This is achieved by gradually changing the duty 
 	cycle of the PWM signal output from PB6. 
 
-	input speed is any number from 5 to 95, the percentage speed
-	of the motor to move. DO NOT input below 5 or above 95.
+	\param speed
+		any int from 5 to 95, the percentage speed
+		of the motor to move. DO NOT input below 5 or above 95.
 */
 void change_left_speed(int speed)
 {
@@ -417,8 +490,9 @@ void change_left_speed(int speed)
 	desired speed. This is achieved by gradually changing the duty 
 	cycle of the PWM signal output from PB7. 
 
-	input speed is any number from 5 to 95, the percentage speed
-	of the motor to move. DO NOT input below 5 or above 95.
+	\param speed
+		any int from 5 to 95, the percentage speed
+		of the motor to move. DO NOT input below 5 or above 95.
 */
 void change_right_speed(int speed)
 {
@@ -454,7 +528,8 @@ void change_right_speed(int speed)
 	This function is called when client needs to know
 	total number of tics the left motor encoder (A and B). 
 
-	returns total number of tics read by the tiva
+	\return total 
+		total number of left encoder tics read by the tiva
 */
 unsigned long int Get_LeftEncoder(void)
 {
@@ -465,7 +540,8 @@ unsigned long int Get_LeftEncoder(void)
 	This function is called when client needs to know
 	total number of tics the right motor encoder (A and B). 
 
-	returns total number of tics read by the tiva
+	\return total 
+		total number of right encoder tics read by the tiva
 */
 unsigned long int Get_RightEncoder(void)
 {
@@ -499,8 +575,18 @@ void Reset_Encoders(void)
 
 	still needs to be modified. Can be tested any time.
 
-	input front_IR is a 32 bit data that holds digital data of the distance
-	between the IR sensor and the front object.
+	\param front_IR 
+		a 32 bit data that holds digital data of the distance
+		between the IR sensor and the front object.
+
+	\attention
+		this portion is not fully completed. It still needs further
+		work. So far it can do partial straight movement (speed adjustments)
+		and deteft front object to avoid collision.
+		
+	\todo
+		requires further work to complete perfect straight movement
+		and turnings at corners
 */
 void motor_testing(uint32_t front_IR)
 {
@@ -520,46 +606,46 @@ void motor_testing(uint32_t front_IR)
 		counter++;
 		// counter 100 ~~ 1 sec
 		
-//		if(front_IR < 0x3C0)
-//		{
+		if(front_IR < 0x3C0)
+		{
 			if(counter > 100)
 			{
-				left_encoder = Get_LeftEncoder();		// gets total number of left encoder tics
-				right_encoder = Get_RightEncoder();	// gets total number of right encoder tics
+//				left_encoder = Get_LeftEncoder();		// gets total number of left encoder tics
+//				right_encoder = Get_RightEncoder();	// gets total number of right encoder tics
 
-				
-				if( ((right_encoder - left_encoder) > 20) )
-				{
-					change_right_speed(50);
-					change_left_speed(50);
-					Reset_Encoders();
-				}
-				else if( ((left_encoder - right_encoder) > 10) )
-				{
-					change_right_speed(53);
-					change_left_speed(40);
-					Reset_Encoders();
-				}
+//				
+//				if( ((right_encoder - left_encoder) > 200) )
+//				{
+//					change_right_speed(50);
+//					change_left_speed(50);
+//					Reset_Encoders();
+//				}
+//				else if( ((left_encoder - right_encoder) > 100) )
+//				{
+//					change_right_speed(53);
+//					change_left_speed(45);
+//					Reset_Encoders();
+//				}
 				
 				counter = 0;
 			}
-//		}
-//		else
-//		{
-//			if(front_IR > 0xBFF)
-//			{
-//				change_right_speed(5);
-//				change_left_speed(5);
-//			}
-//			else if(front_IR > 0x7FF)
-//			{
-//				change_right_speed(15);
-//				change_left_speed(15);
-//			}
-//			else if(front_IR > 0x5FF)
-//			{
-//				change_right_speed(35);
-//				change_left_speed(35);
-//			}
-//		}
+		}
+		else
+		{
+			if(front_IR > 0xBFF)
+			{
+				change_right_speed(5);
+				change_left_speed(5);
+			}
+			else if(front_IR > 0x7FF)
+			{
+				change_right_speed(15);
+				change_left_speed(15);
+			}
+			else if(front_IR > 0x5FF)
+			{
+				change_right_speed(35);
+				change_left_speed(35);
+			}
+		}
 }

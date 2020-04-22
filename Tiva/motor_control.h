@@ -1,3 +1,18 @@
+/******************************************************************************/
+/*!
+\file   motor_control.h
+\author Kenyu Tatsuta
+\par    email: k.tatsuta\@digipen.edu
+\par    DigiPen login: k.tatsuta
+\par    Course: ECE360
+\par    3rd Year Project
+\brief  
+  This is the header file for all member functions
+  to initiate motor control.  
+  
+*/
+/******************************************************************************/
+
 //void portB_Init(void);
 //void portE_Init(void);
 #include <stdint.h>
